@@ -1,0 +1,3851 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Certificate Generator</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600&family=Cormorant+Garamond:wght@400;700&family=EB+Garamond:wght@400;700&family=Lora:wght@400;700&family=Merriweather:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative&family=Abril+Fatface&family=Great+Vibes&family=Dancing+Script:wght@400;700&family=Allura&family=Alex+Brush&family=Parisienne&family=Sacramento&family=Satisfy&family=Pacifico&family=Playball&family=Lobster&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Roboto:wght@400;700&family=Oswald:wght@400;700&family=Bebas+Neue&family=Noto+Sans+Bengali:wght@400;700&family=Noto+Serif+Bengali:wght@400;700&family=Baloo+Da+2:wght@400;700&family=Anek+Bangla:wght@400;700&family=Tiro+Bangla&family=Galada&family=Mina:wght@400;700&family=Atma:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+      :root {
+        --navy: #1b2a4a;
+        --navy-2: #2a3d63;
+        --gold: #c9a227;
+        --gold-light: #e8d9a8;
+        --cream: #faf7f0;
+        --panel: #ffffff;
+        --ink: #2c2f36;
+        --muted: #6b7078;
+        --line: #e6e1d4;
+        box-sizing: border-box;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-padding-top: env(safe-area-inset-top, 0px);
+      }
+      body {
+        margin: 0;
+        background: var(--cream);
+        color: var(--ink);
+        font-family: "Inter", "Hind Siliguri", sans-serif;
+        min-height: 100%;
+      }
+      header {
+        padding: 28px 24px 10px;
+        text-align: center;
+      }
+      header h1 {
+        font-family: "Playfair Display", serif;
+        font-size: 26px;
+        margin: 0 0 4px;
+        color: var(--navy);
+      }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 20px 20px 60px;
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 22px;
+      }
+      @media (max-width: 860px) {
+        .wrap {
+          grid-template-columns: 1fr;
+        }
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 20px;
+      }
+      .panel + .panel {
+        margin-top: 18px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--navy);
+        margin: 0 0 6px;
+      }
+      .hint {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 4px 0 14px;
+      }
+      .drop {
+        border: 2px dashed var(--gold-light);
+        border-radius: 8px;
+        padding: 22px 14px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.15s;
+        background: #fffdf7;
+      }
+      .drop:hover,
+      .drop.drag {
+        border-color: var(--gold);
+        background: #fdf8ea;
+      }
+      .drop svg {
+        width: 26px;
+        height: 26px;
+        color: var(--gold);
+        margin-bottom: 6px;
+      }
+      .drop .fname {
+        font-size: 13px;
+        color: var(--navy);
+        font-weight: 600;
+        margin-top: 6px;
+        word-break: break-all;
+      }
+      input[type="file"] {
+        display: none;
+      }
+      input[type="text"],
+      select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        font-size: 14px;
+        font-family: inherit;
+        background: #fff;
+        color: var(--ink);
+      }
+      input[type="text"]:focus,
+      select:focus {
+        outline: 2px solid var(--gold-light);
+        border-color: var(--gold);
+      }
+      .field {
+        margin-bottom: 16px;
+      }
+      .btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 7px;
+        background: var(--navy);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .btn:hover {
+        background: var(--navy-2);
+      }
+      .btn:disabled {
+        background: #b9bec8;
+        cursor: not-allowed;
+      }
+      .btn.secondary {
+        background: var(--gold);
+        color: var(--navy);
+      }
+      .btn.secondary:hover {
+        background: #b8931f;
+      }
+      .status {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 12px;
+        min-height: 18px;
+      }
+      .status.err {
+        color: #b3432f;
+      }
+      .status.ok {
+        color: #2f7d4f;
+      }
+      .rows-info {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 8px;
+      }
+      .preview-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+      }
+      .canvas-shell {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .nav-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .nav-row button {
+        border: 1px solid var(--line);
+        background: #fff;
+        border-radius: 6px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .nav-row button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .placeholder {
+        color: var(--muted);
+        font-size: 14px;
+        text-align: center;
+        padding: 60px 20px;
+      }
+      .design-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+      }
+      @media (max-width: 400px) {
+        .design-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      .swatch {
+        cursor: pointer;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        padding: 4px;
+        text-align: center;
+      }
+      .swatch .chip {
+        height: 34px;
+        border-radius: 5px;
+        margin-bottom: 5px;
+      }
+      .swatch span {
+        font-size: 10px;
+        color: var(--muted);
+        line-height: 1.2;
+        display: block;
+      }
+      .swatch.active {
+        border-color: var(--gold);
+      }
+      .swatch.active span {
+        color: var(--navy);
+        font-weight: 600;
+      }
+      .bg-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+      }
+      @media (max-width: 400px) {
+        .bg-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      .swatch canvas.thumb {
+        width: 100%;
+        height: auto;
+        border-radius: 5px;
+        border: 1px solid var(--line);
+        margin-bottom: 5px;
+      }
+      .warn {
+        display: none;
+        margin-top: 12px;
+        padding: 12px;
+        border: 1px solid #e3b7a8;
+        background: #fff4ef;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #8a3a26;
+        line-height: 1.5;
+      }
+      .warn .btn {
+        margin-top: 10px;
+        padding: 9px;
+        background: #b3432f;
+        color: #fff;
+      }
+      .warn .btn:hover {
+        background: #933624;
+      }
+      .rowwarn {
+        font-size: 12px;
+        color: #b3432f;
+        text-align: center;
+        min-height: 16px;
+      }
+      input[type="number"] {
+        width: 100%;
+        padding: 9px 10px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        font-size: 14px;
+        font-family: inherit;
+        background: #fff;
+        color: var(--ink);
+      }
+      input[type="color"] {
+        width: 100%;
+        height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 2px;
+        background: #fff;
+      }
+      .ed-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .ed-grid label {
+        font-size: 12px;
+      }
+      .ed-tog {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .tog {
+        flex: 1;
+        padding: 9px;
+        border: 1px solid var(--line);
+        background: #fff;
+        border-radius: 7px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--ink);
+        font-family: inherit;
+      }
+      .tog.on {
+        background: var(--navy);
+        color: #fff;
+        border-color: var(--navy);
+      }
+      .ed-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .ed-row .btn {
+        padding: 9px;
+        font-size: 13px;
+      }
+      .canvas-shell canvas {
+        touch-action: none;
+        cursor: move;
+      }
+      .chk {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        font-size: 13px;
+        margin: 0 0 12px;
+        font-weight: 500;
+        color: var(--ink);
+      }
+      .chk input {
+        margin-top: 3px;
+      }
+      .wrap {
+        align-items: start;
+      }
+      .preview-wrap {
+        position: sticky;
+        top: calc(env(safe-area-inset-top, 0px) + 12px);
+        z-index: 5;
+        max-height: calc(100vh - 24px);
+        overflow: auto;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+      }
+      @media (max-width: 860px) {
+        .preview-wrap {
+          order: -1;
+          top: calc(env(safe-area-inset-top, 0px) + 6px);
+          padding: 10px;
+          gap: 8px;
+          max-height: none;
+          overflow: visible;
+        }
+        .preview-wrap .canvas-shell {
+          text-align: center;
+        }
+        .preview-wrap canvas {
+          width: auto;
+          max-width: 100%;
+          max-height: 34vh;
+          margin: 0 auto;
+        }
+      }
+      textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        font-size: 14px;
+        font-family: inherit;
+        background: #fff;
+        color: var(--ink);
+        resize: vertical;
+      }
+      input[type="range"] {
+        width: 100%;
+      }
+      .rg {
+        margin-bottom: 10px;
+      }
+      .rg label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        margin-bottom: 2px;
+      }
+      .btn.danger {
+        background: #b3432f;
+        margin-top: 8px;
+      }
+      .btn.danger:hover {
+        background: #933624;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --cream: #171a20;
+          --panel: #1f232b;
+          --ink: #e8e6df;
+          --muted: #9a9fa8;
+          --line: #323844;
+          --navy: #7f97c9;
+          --navy-2: #98add8;
+        }
+        body {
+          background: var(--cream);
+        }
+        .drop {
+          background: #20242c;
+        }
+        .warn {
+          background: #2a1f1c;
+          border-color: #5a3a30;
+          color: #f0b8a8;
+        }
+        input[type="text"],
+        input[type="number"],
+        select,
+        input[type="color"],
+        textarea,
+        .tog {
+          background: #171a20;
+          color: var(--ink);
+        }
+        .tog.on {
+          color: #171a20;
+        }
+      }
+
+      /* ===== button redesign ===== */
+      .btn,
+      .tog,
+      .nav-row button,
+      .linkbtn {
+        font-family: inherit;
+        letter-spacing: 0.2px;
+        transition:
+          transform 0.12s,
+          box-shadow 0.12s,
+          filter 0.12s,
+          background 0.12s;
+      }
+      .btn {
+        background: linear-gradient(135deg, #14213d, #2b4a8b);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 13px 14px;
+        font-size: 14.5px;
+        font-weight: 700;
+        box-shadow:
+          0 4px 12px rgba(20, 33, 61, 0.35),
+          inset 0 -3px 0 rgba(0, 0, 0, 0.22);
+      }
+      .btn:hover {
+        background: linear-gradient(135deg, #1a2c52, #3559a6);
+        transform: translateY(-1px);
+        box-shadow:
+          0 7px 16px rgba(20, 33, 61, 0.4),
+          inset 0 -3px 0 rgba(0, 0, 0, 0.22);
+      }
+      .btn:active {
+        transform: translateY(1px);
+        box-shadow:
+          0 2px 6px rgba(20, 33, 61, 0.35),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+      }
+      .btn.secondary {
+        background: linear-gradient(135deg, #f2b705, #d98a00);
+        color: #2a1a00;
+        box-shadow:
+          0 4px 12px rgba(217, 138, 0, 0.4),
+          inset 0 -3px 0 rgba(120, 70, 0, 0.3);
+      }
+      .btn.secondary:hover {
+        background: linear-gradient(135deg, #ffc61a, #e59a05);
+        box-shadow:
+          0 7px 16px rgba(217, 138, 0, 0.45),
+          inset 0 -3px 0 rgba(120, 70, 0, 0.3);
+      }
+      .btn.danger,
+      .warn .btn {
+        background: linear-gradient(135deg, #d64533, #a82a1b);
+        color: #fff;
+        box-shadow:
+          0 4px 12px rgba(168, 42, 27, 0.4),
+          inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+      }
+      .btn.danger:hover,
+      .warn .btn:hover {
+        background: linear-gradient(135deg, #e5513e, #b8301f);
+      }
+      .btn:disabled {
+        background: #b6bcc8;
+        color: #f4f5f8;
+        box-shadow: none;
+        transform: none;
+        cursor: not-allowed;
+      }
+      #pdfBtn:not(:disabled) {
+        background: linear-gradient(135deg, #0b7a4b, #0f5f3b);
+        box-shadow:
+          0 4px 12px rgba(11, 122, 75, 0.4),
+          inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+        font-size: 15px;
+      }
+      #pdfBtn:not(:disabled):hover {
+        background: linear-gradient(135deg, #0e8d58, #127046);
+      }
+      .tog {
+        border: 2px solid #c9cfdb;
+        background: #fff;
+        color: #1b2a4a;
+        border-radius: 9px;
+        font-weight: 700;
+        padding: 9px 6px;
+      }
+      .tog:hover {
+        border-color: #2b4a8b;
+        transform: translateY(-1px);
+      }
+      .tog.on {
+        background: linear-gradient(135deg, #14213d, #2b4a8b);
+        color: #fff;
+        border-color: #14213d;
+        box-shadow: 0 3px 8px rgba(20, 33, 61, 0.35);
+      }
+      .nav-row button {
+        border: 2px solid #14213d;
+        background: #fff;
+        color: #14213d;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 7px 16px;
+      }
+      .nav-row button:hover:not(:disabled) {
+        background: #14213d;
+        color: #fff;
+      }
+      .nav-row button:disabled {
+        border-color: #c9cfdb;
+        color: #a3a9b6;
+      }
+      .linkbtn {
+        display: none;
+        margin-top: 10px;
+        background: #fff7dc;
+        border: 2px solid #d98a00;
+        color: #7a4a00;
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 12.5px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .linkbtn:hover {
+        background: #ffedb0;
+      }
+      .swatch {
+        position: relative;
+        border-radius: 10px;
+        transition:
+          background 0.15s,
+          border-color 0.15s;
+      }
+      .swatch:hover {
+        background: rgba(217, 138, 0, 0.1);
+      }
+      .swatch.active {
+        border-color: #d98a00;
+        background: rgba(217, 138, 0, 0.14);
+      }
+      .swatch .x {
+        position: absolute;
+        top: -7px;
+        right: -7px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        background: #c0392b;
+        color: #fff;
+        font-size: 14px;
+        line-height: 1;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 0;
+        display: none;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        z-index: 2;
+      }
+      .swatch:hover .x,
+      .swatch.active .x {
+        display: block;
+      }
+      @media (hover: none) {
+        .swatch .x {
+          display: block;
+        }
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) .tog:not(.on) {
+          background: #1f232b;
+          color: #e8e6df;
+          border-color: #3d4452;
+        }
+        :root:not([data-theme="light"]) .nav-row button {
+          background: #1f232b;
+          color: #dfe6f7;
+          border-color: #7f97c9;
+        }
+        :root:not([data-theme="light"]) .nav-row button:hover:not(:disabled) {
+          background: #7f97c9;
+          color: #111;
+        }
+        :root:not([data-theme="light"]) .linkbtn {
+          background: #2e2610;
+          color: #f0d28a;
+        }
+      }
+
+      /* ===== language switch ===== */
+      .topbar {
+        display: flex;
+        justify-content: flex-end;
+        padding: 12px 20px 0;
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+      .langsw {
+        display: inline-flex;
+        border: 2px solid #14213d;
+        border-radius: 999px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(20, 33, 61, 0.15);
+      }
+      .langsw button {
+        border: 0;
+        background: transparent;
+        padding: 7px 16px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        color: #14213d;
+        font-family: "Inter", "Hind Siliguri", sans-serif;
+        transition:
+          background 0.12s,
+          color 0.12s;
+      }
+      .langsw button:hover:not(.on) {
+        background: rgba(20, 33, 61, 0.08);
+      }
+      .langsw button.on {
+        background: linear-gradient(135deg, #14213d, #2b4a8b);
+        color: #fff;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) .langsw {
+          background: #1f232b;
+          border-color: #7f97c9;
+        }
+        :root:not([data-theme="light"]) .langsw button {
+          color: #dfe6f7;
+        }
+        :root:not([data-theme="light"]) .langsw button.on {
+          background: #7f97c9;
+          color: #111;
+        }
+      }
+
+      /* ===== developer footer ===== */
+      .devfoot {
+        max-width: 1180px;
+        margin: 10px auto 0;
+        padding: 22px 20px 40px;
+        border-top: 1px solid var(--line);
+        text-align: center;
+      }
+      .devfoot h3 {
+        font-family: "Playfair Display", serif;
+        font-size: 18px;
+        margin: 0 0 12px;
+        color: var(--navy);
+      }
+      #devList {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+      }
+      .devline {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px 30px;
+      }
+      .devrow {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+      }
+      .devrow .k {
+        font-weight: 600;
+        color: var(--navy);
+      }
+      .devrow .k::after {
+        content: ":";
+      }
+      .devrow .v {
+        word-break: break-word;
+      }
+      .devrow a {
+        color: #2b4a8b;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .devrow a:hover {
+        text-decoration: underline;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) .devrow a {
+          color: #98add8;
+        }
+      }
+    
+      .rt{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px;align-items:center}
+      .rt .tog{flex:0 0 auto;padding:6px 13px}
+      .rt input[type="color"]{width:44px;height:36px;flex:0 0 auto}
+      .rt select{width:auto;flex:1;min-width:120px;padding:7px 8px}
+      .rt input[type="number"]{width:72px;padding:7px 8px}
+      .rich{width:100%;min-height:76px;max-height:220px;overflow:auto;padding:10px 12px;border:1px solid var(--line);border-radius:7px;font-size:15px;line-height:1.5;background:#fff;color:var(--ink);white-space:pre-wrap;word-break:break-word}
+      #middleText + .rich{min-height:0}
+      .rich:focus{outline:2px solid var(--gold-light);border-color:var(--gold)}
+      @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .rich{background:#171a20}}
+      .rthint{font-size:12px;color:var(--muted);margin:-6px 0 12px}
+      /* ===== mail compose popup ===== */
+      .mailmodal {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(10, 14, 25, 0.55);
+      }
+      .mailmodal[hidden] {
+        display: none;
+      }
+      .mailcard {
+        position: relative;
+        width: 100%;
+        max-width: 460px;
+        max-height: 100%;
+        overflow: auto;
+        background: var(--panel);
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 24px 22px 20px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+      }
+      .mailcard h2 {
+        font-family: "Playfair Display", serif;
+        font-size: 22px;
+        margin: 0 0 14px;
+        color: var(--navy);
+      }
+      .mailclose {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        width: 32px;
+        height: 32px;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: var(--muted);
+        font-size: 24px;
+        line-height: 1;
+        cursor: pointer;
+      }
+      .mailclose:hover {
+        background: rgba(127, 127, 127, 0.18);
+      }
+      .mailto {
+        font-size: 14px;
+        font-weight: 600;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="langsw" id="langSw" role="group" aria-label="Language">
+        <button type="button" data-lang="en" class="on">English</button
+        ><button type="button" data-lang="bn">বাংলা</button>
+      </div>
+    </div>
+    <header>
+      <h1>Certificate Generator</h1>
+      <p>
+        CSV আপলোড করুন, ডিজাইন ও টাইপ বেছে নিন, তারপর একটাই PDF-এ সব certificate
+        ডাউনলোড করুন
+      </p>
+    </header>
+
+    <div class="wrap">
+      <div>
+        <div class="panel">
+          <label>১. CSV ফাইল আপলোড করুন</label>
+          <div class="hint">
+            Column: Name, Event Name, Date, Institution, Team Name, Student ID, Class, Department, Group
+          </div>
+          <div class="drop" id="drop">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
+              <path d="M12 16V4M12 4l-4 4M12 4l4 4" />
+              <path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3" />
+            </svg>
+            <div>এখানে ক্লিক করে CSV বেছে নিন</div>
+            <div class="fname" id="fname"></div>
+          </div>
+          <input type="file" id="fileInput" accept=".csv" />
+          <div class="rows-info" id="rowsInfo" data-dyn></div>
+          <div class="warn" id="warnBox">
+            <div id="warnText" data-dyn></div>
+            <button class="btn" id="missBtn">
+              অসম্পূর্ণ তথ্যের CSV ডাউনলোড করুন
+            </button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <label>২. সার্টিফিকেটের ধরন</label>
+          <div class="field">
+            <select id="certType">
+              <option value="PARTICIPATION">Participation</option>
+              <option value="ACHIEVEMENT">Achievement</option>
+              <option value="COMPLETION">Completion</option>
+              <option value="EXCELLENCE">Excellence</option>
+              <option value="APPRECIATION">Appreciation</option>
+            </select>
+          </div>
+
+          <label>৩. ডিজাইন বেছে নিন</label>
+          <div class="hint" style="margin-top: 0">
+            অপছন্দের ডিজাইনের কোণার ✕ চাপলে সেটা তালিকা থেকে মুছে যাবে।
+          </div>
+          <div class="design-grid" id="designGrid" data-dyn></div>
+          <button type="button" class="linkbtn" id="restoreDesigns">
+            ↺ মোছা ডিজাইন ফিরিয়ে আনুন
+          </button>
+          <div style="height: 20px"></div>
+          <label>৪. ব্যাকগ্রাউন্ড বেছে নিন</label>
+          <div class="hint">
+            ক্লিক করলেই preview-তে ব্যাকগ্রাউন্ড বদলে যাবে। অপছন্দের অপশনের
+            কোণার ✕ চাপলে মুছে যাবে।
+          </div>
+          <div class="bg-grid" id="bgGrid" data-dyn></div>
+          <button type="button" class="linkbtn" id="restoreBgs">
+            ↺ মোছা ব্যাকগ্রাউন্ড ফিরিয়ে আনুন
+          </button>
+        </div>
+
+        <div class="panel">
+          <label>৫. লেখা, ছবি ও পজিশন</label>
+          <div class="hint">
+            Preview-তে লেখা, ছবি বা লাইন ক্লিক করে টেনে সরান। ছবির কোণার নীল
+            বক্স টেনে সাইজ বদলান; লাইনের দুই মাথার নীল বক্স টেনে লম্বা/বাঁকা
+            করুন। যেকোনো ডিফল্ট লেখা/লাইন মুছে ফেলা যায়। পরিবর্তন সব
+            certificate-এ প্রযোজ্য।
+          </div>
+          <label class="chk"
+            ><input type="checkbox" id="decorChk" checked /><span
+              >ডিজাইনের বর্ডার/সাজসজ্জা দেখান (বন্ধ করে নিজের লাইন বসাতে
+              পারবেন)</span
+            ></label
+          >
+          <div
+            class="ed-row"
+            style="margin-bottom: 14px; grid-template-columns: 1fr 1fr"
+          >
+            <button
+              type="button"
+              class="btn secondary"
+              id="addTextBtn"
+              style="font-size: 13px; padding: 11px 4px"
+            >
+              ＋ লেখা
+            </button>
+            <button
+              type="button"
+              class="btn secondary"
+              id="addImgBtn"
+              style="font-size: 13px; padding: 11px 4px"
+            >
+              ＋ ছবি/লোগো
+            </button>
+            <button
+              type="button"
+              class="btn secondary"
+              id="addLineBtn"
+              style="font-size: 13px; padding: 11px 4px"
+            >
+              ＋ লাইন
+            </button>
+            <button
+              type="button"
+              class="btn secondary"
+              id="addShapeBtn"
+              style="font-size: 13px; padding: 11px 4px"
+            >
+              ＋ আকার / নম্বর / অক্ষর
+            </button>
+          </div>
+          <input type="file" id="imgInput" accept="image/*" multiple />
+          <div class="field"><select id="elSel" data-dyn></select></div>
+
+          <div id="txtArea" class="field" style="display: none">
+            <label>লেখা (একাধিক লাইন চলবে)</label>
+            <textarea id="edText" rows="3"></textarea>
+          </div>
+
+          <div id="txtCtl">
+            <div class="ed-grid">
+              <div><label>X (px)</label><input type="number" id="edX" /></div>
+              <div><label>Y (px)</label><input type="number" id="edY" /></div>
+              <div>
+                <label>সাইজ (px)</label
+                ><input type="number" id="edSize" min="6" />
+              </div>
+              <div><label>রং</label><input type="color" id="edColor" /></div>
+              <div><label>ঘোরানো (ডিগ্রি)</label><input type="number" id="edRot" step="1" /></div>
+              <div style="grid-column: 1 / -1"><input type="range" id="edRotS" min="-180" max="180" step="1" value="0" /></div>
+            </div>
+            <div class="field">
+              <label>ফন্ট</label>
+              <select id="edFont"></select>
+            </div>
+            <div class="ed-grid" style="margin-bottom: 14px">
+              <div>
+                <label>এলাইনমেন্ট</label>
+                <select id="edAlign">
+                  <option value="center">মাঝখানে</option>
+                  <option value="left">বাঁ দিকে</option>
+                  <option value="right">ডান দিকে</option>
+                  <option value="justify">≡ জাস্টিফাই (দুই পাশ সমান)</option>
+                </select>
+              </div>
+              <div>
+                <label>লিস্ট স্টাইল (প্রতি লাইনে)</label>
+                <select id="edList">
+                  <option value="">নেই</option>
+                  <option value="bullet">• বুলেট</option>
+                  <option value="num">1. নম্বর</option>
+                  <option value="bnum">১. বাংলা নম্বর</option>
+                  <option value="alpha">A. অক্ষর</option>
+                  <option value="tick">✓ টিক</option>
+                  <option value="arrow">➤ তীর</option>
+                  <option value="star">★ স্টার</option>
+                  <option value="dash">– ড্যাশ</option>
+                </select>
+              </div>
+              <div>
+                <label>বক্সের প্রস্থ px (০ = অটো)</label
+                ><input type="number" id="edBoxW" min="0" step="10" />
+              </div>
+            </div>
+            <div class="hint" style="margin-top: -6px">
+              প্রস্থ দিলে লেখা ওই বক্সের ভেতরে ভেঙে সাজবে। জাস্টিফাইয়ে X =
+              বক্সের মাঝখান।
+            </div>
+            <div class="ed-tog">
+              <button type="button" class="tog" id="edBold"><b>B</b></button>
+              <button type="button" class="tog" id="edItalic"><i>I</i></button>
+              <button type="button" class="tog" id="edUnder"><u>U</u></button>
+              <button type="button" class="tog" id="edHide">লুকান</button>
+            </div>
+          </div>
+
+          <div id="imgCtl" style="display: none">
+            <div class="ed-grid">
+              <div>
+                <label>X (px, মাঝখান)</label><input type="number" id="imX" />
+              </div>
+              <div>
+                <label>Y (px, মাঝখান)</label><input type="number" id="imY" />
+              </div>
+              <div>
+                <label>Width (px)</label
+                ><input type="number" id="imW" min="5" />
+              </div>
+              <div>
+                <label>Height (px)</label
+                ><input type="number" id="imH" min="5" />
+              </div>
+              <div><label>ঘোরানো (ডিগ্রি)</label><input type="number" id="imRot" step="1" /></div>
+              <div style="grid-column: 1 / -1"><input type="range" id="imRotS" min="-180" max="180" step="1" value="0" /></div>
+            </div>
+            <label class="chk"
+              ><input type="checkbox" id="imLock" checked /><span
+                >Width/Height-এর অনুপাত ঠিক রাখুন</span
+              ></label
+            >
+            <div class="hint" style="margin-top: 0">
+              Crop (ছবির যেদিক থেকে কাটবেন):
+            </div>
+            <div class="rg">
+              <label>বাঁ দিক <span id="imCLv"></span></label
+              ><input
+                type="range"
+                id="imCL"
+                min="0"
+                max="90"
+                step="1"
+                value="0"
+              />
+            </div>
+            <div class="rg">
+              <label>ডান দিক <span id="imCRv"></span></label
+              ><input
+                type="range"
+                id="imCR"
+                min="0"
+                max="90"
+                step="1"
+                value="0"
+              />
+            </div>
+            <div class="rg">
+              <label>ওপর <span id="imCTv"></span></label
+              ><input
+                type="range"
+                id="imCT"
+                min="0"
+                max="90"
+                step="1"
+                value="0"
+              />
+            </div>
+            <div class="rg">
+              <label>নিচ <span id="imCBv"></span></label
+              ><input
+                type="range"
+                id="imCB"
+                min="0"
+                max="90"
+                step="1"
+                value="0"
+              />
+            </div>
+            <div class="rg">
+              <label>স্বচ্ছতা (Opacity) <span id="imOpv"></span></label
+              ><input
+                type="range"
+                id="imOp"
+                min="10"
+                max="100"
+                step="1"
+                value="100"
+              />
+            </div>
+            <div class="ed-tog">
+              <button type="button" class="tog" id="imHide">লুকান</button>
+            </div>
+          </div>
+
+          <div id="shapeCtl" style="display: none">
+            <div class="field">
+              <label>আকৃতি</label>
+              <select id="shKind">
+                <option value="circle">● বৃত্ত</option>
+                <option value="square">■ চতুর্ভুজ</option>
+                <option value="rounded">▢ গোল কোণার বক্স</option>
+                <option value="triangle">▲ ত্রিভুজ</option>
+                <option value="diamond">◆ ডায়মন্ড</option>
+                <option value="pentagon">⬟ পঞ্চভুজ</option>
+                <option value="hexagon">⬢ ষড়ভুজ</option>
+                <option value="star">★ স্টার</option>
+                <option value="heart">♥ হার্ট</option>
+                <option value="arrow">➤ তীর</option>
+                <option value="check">✓ টিক</option>
+                <option value="cross">✕ ক্রস</option>
+              </select>
+            </div>
+            <div class="ed-grid">
+              <div>
+                <label>ভেতরের লেখা (নম্বর/অক্ষর)</label
+                ><input
+                  type="text"
+                  id="shText"
+                  placeholder="যেমন: 1 বা A বা ক"
+                />
+              </div>
+              <div>
+                <label>লেখার সাইজ (০ = অটো)</label
+                ><input type="number" id="shTs" min="0" />
+              </div>
+              <div><label>লেখার রং</label><input type="color" id="shTc" /></div>
+              <div>
+                <label>ভরাট রং</label><input type="color" id="shFill" />
+              </div>
+              <div>
+                <label>বর্ডারের রং</label><input type="color" id="shStroke" />
+              </div>
+              <div>
+                <label>বর্ডার মোটা (px)</label
+                ><input type="number" id="shSw" min="0" step="0.5" />
+              </div>
+              <div>
+                <label>X (px, মাঝখান)</label><input type="number" id="shX" />
+              </div>
+              <div>
+                <label>Y (px, মাঝখান)</label><input type="number" id="shY" />
+              </div>
+              <div>
+                <label>Width (px)</label
+                ><input type="number" id="shW" min="4" />
+              </div>
+              <div>
+                <label>Height (px)</label
+                ><input type="number" id="shH" min="4" />
+              </div>
+              <div>
+                <label>ঘোরানো (ডিগ্রি)</label
+                ><input type="number" id="shRot" step="5" />
+              </div>
+            </div>
+            <label class="chk"
+              ><input type="checkbox" id="shNoFill" /><span
+                >ভেতরে রং নেই (শুধু বর্ডার)</span
+              ></label
+            >
+            <label class="chk"
+              ><input type="checkbox" id="shLock" checked /><span
+                >Width/Height-এর অনুপাত ঠিক রাখুন</span
+              ></label
+            >
+            <div class="rg">
+              <label>স্বচ্ছতা <span id="shOpv"></span></label
+              ><input
+                type="range"
+                id="shOp"
+                min="10"
+                max="100"
+                step="1"
+                value="100"
+              />
+            </div>
+            <div class="ed-row" style="margin-bottom: 14px">
+              <button
+                type="button"
+                class="btn secondary"
+                id="shNext"
+                style="font-size: 12.5px; padding: 10px 4px"
+              >
+                ⧉ কপি + পরের নম্বর/অক্ষর
+              </button>
+              <button type="button" class="tog" id="shHide">লুকান</button>
+            </div>
+          </div>
+
+          <div id="lineCtl" style="display: none">
+            <div class="ed-grid">
+              <div>
+                <label>X (px, মাঝখান)</label><input type="number" id="lnX" />
+              </div>
+              <div>
+                <label>Y (px, মাঝখান)</label><input type="number" id="lnY" />
+              </div>
+              <div>
+                <label>দৈর্ঘ্য (px)</label
+                ><input type="number" id="lnLen" min="1" />
+              </div>
+              <div>
+                <label>কোণ (ডিগ্রি)</label
+                ><input type="number" id="lnAng" step="0.5" />
+              </div>
+              <div>
+                <label>মোটা (px)</label
+                ><input type="number" id="lnTh" min="0.5" step="0.5" />
+              </div>
+              <div><label>রং</label><input type="color" id="lnColor" /></div>
+            </div>
+            <div class="field">
+              <label>ধরন</label>
+              <select id="lnStyle">
+                <option value="solid">একটানা ———</option>
+                <option value="dashed">ড্যাশ - - -</option>
+                <option value="dotted">ডট · · ·</option>
+              </select>
+            </div>
+            <div class="rg">
+              <label>স্বচ্ছতা <span id="lnOpv"></span></label
+              ><input
+                type="range"
+                id="lnOp"
+                min="10"
+                max="100"
+                step="1"
+                value="100"
+              />
+            </div>
+            <div class="ed-tog">
+              <button type="button" class="tog" id="lnHide">লুকান</button>
+            </div>
+          </div>
+
+          <label>লেয়ার (উপরে/নিচে)</label>
+          <div class="ed-row" style="margin-bottom: 14px">
+            <button type="button" class="btn secondary" id="lyFront">⬆ সবার উপরে</button>
+            <button type="button" class="btn secondary" id="lyBack">⬇ সবার নিচে</button>
+            <button type="button" class="btn secondary" id="lyUp">↑ এক ধাপ উপরে</button>
+            <button type="button" class="btn secondary" id="lyDown">↓ এক ধাপ নিচে</button>
+          </div>
+          <div class="ed-row">
+            <button type="button" class="btn secondary" id="edReset">
+              এটা রিসেট
+            </button>
+            <button type="button" class="btn secondary" id="edResetAll">
+              ডিফল্ট সব রিসেট
+            </button>
+          </div>
+          <button type="button" class="btn secondary" id="dupBtn" style="width: 100%; margin: 12px 0 10px; padding: 8px 14px">
+            ⧉ ডুপ্লিকেট করুন
+          </button>
+          <button type="button" class="btn danger" id="delBtn">
+            এই আইটেম মুছুন
+          </button>
+          <button type="button" class="linkbtn" id="restoreEls">
+            ↺ মোছা ডিফল্ট লেখা/লাইন ফিরিয়ে আনুন
+          </button>
+        </div>
+
+        <div class="panel">
+          <label>৬. মাঝের মূল লেখা</label>
+          <div class="hint">
+            সব certificate-এ এই লাইনটা মাঝখানে বসবে (নাম ও প্রতিষ্ঠানের নিচে)
+          </div>
+          <div class="field">
+            <input
+              type="text"
+              id="middleText"
+              value="has successfully participated in"
+              placeholder="যেমন: has successfully completed the course on"
+            />
+          </div>
+          <label class="chk"
+            ><input type="checkbox" id="skipIncomplete" checked /><span
+              >তথ্য অসম্পূর্ণ (Name/Event/Date/Institution নেই) এমন certificate
+              বাদ দিন</span
+            ></label
+          >
+          <button class="btn" id="pdfBtn" disabled>
+            সব Certificate PDF ডাউনলোড করুন
+          </button>
+          <div class="status" id="status" data-dyn></div>
+          <button
+            class="btn secondary"
+            id="failBtn"
+            style="display: none; margin-top: 10px"
+          >
+            যেগুলো তৈরি হয়নি তার তথ্য (CSV)
+          </button>
+        </div>
+      </div>
+
+      <div class="panel preview-wrap">
+        <div id="previewArea" style="width: 100%">
+          <div class="placeholder">
+            CSV আপলোড করলে এখানে certificate-এর preview দেখতে পাবেন
+          </div>
+        </div>
+        <div class="nav-row" id="navRow" style="display: none">
+          <button id="prevBtn">◀ আগের</button>
+          <span id="navLabel">1 / 1</span>
+          <button id="nextBtn">পরের ▶</button>
+        </div>
+        <div class="rowwarn" id="rowWarn" data-dyn></div>
+      </div>
+    </div>
+
+    <footer class="devfoot">
+      <h3>ডেভেলপার</h3>
+      <div id="devList" data-dyn></div>
+    </footer>
+
+    <div class="mailmodal" id="mailModal" hidden>
+      <div class="mailcard" role="dialog" aria-modal="true">
+        <button type="button" class="mailclose" id="mailClose" aria-label="Close">×</button>
+        <h2>ইমেইল পাঠান</h2>
+        <div class="field"><label>প্রাপক</label><div class="mailto" id="mailTo" data-dyn></div></div>
+        <div class="field"><label>বিষয়</label><input type="text" id="mailSubj" value="Certificate Generator" placeholder="মেইলের বিষয় লিখুন" /></div>
+        <div class="field"><label>আপনার বার্তা</label><textarea id="mailBody" rows="5" placeholder="এখানে আপনার বার্তা লিখুন..."></textarea></div>
+        <div class="hint">নিচের যেকোনো বাটনে চাপলে আপনার লেখা মেইলটি তৈরি হয়ে যাবে, সেখান থেকে Send চাপুন।</div>
+        <div class="ed-row">
+          <button type="button" class="btn" id="mailGmail">Gmail-এ খুলুন</button>
+          <button type="button" class="btn secondary" id="mailApp">মেইল অ্যাপে খুলুন</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const W = 1400,
+        H = 990;
+
+      // ===== language (English default, Bangla optional) =====
+      let lang = "en";
+      try {
+        const s = localStorage.getItem("certLang");
+        if (s === "bn" || s === "en") lang = s;
+      } catch (e) {}
+      const EN = {
+        "CSV আপলোড করুন, ডিজাইন ও টাইপ বেছে নিন, তারপর একটাই PDF-এ সব certificate ডাউনলোড করুন":
+          "Upload a CSV, choose a design and type, then download all certificates in a single PDF",
+        "১. CSV ফাইল আপলোড করুন": "1. Upload CSV file",
+        "এখানে ক্লিক করে CSV বেছে নিন": "Click here to choose a CSV",
+        "অসম্পূর্ণ তথ্যের CSV ডাউনলোড করুন":
+          "Download CSV of incomplete records",
+        "২. সার্টিফিকেটের ধরন": "2. Certificate type",
+        "৩. ডিজাইন বেছে নিন": "3. Choose a design",
+        "অপছন্দের ডিজাইনের কোণার ✕ চাপলে সেটা তালিকা থেকে মুছে যাবে।":
+          "Click the ✕ on a design's corner to remove it from the list.",
+        "↺ মোছা ডিজাইন ফিরিয়ে আনুন": "↺ Restore removed designs",
+        "৪. ব্যাকগ্রাউন্ড বেছে নিন": "4. Choose a background",
+        "ক্লিক করলেই preview-তে ব্যাকগ্রাউন্ড বদলে যাবে। অপছন্দের অপশনের কোণার ✕ চাপলে মুছে যাবে।":
+          "Click to change the background in the preview. Click the ✕ on an option's corner to remove it.",
+        "↺ মোছা ব্যাকগ্রাউন্ড ফিরিয়ে আনুন": "↺ Restore removed backgrounds",
+        "৫. লেখা, ছবি ও পজিশন": "5. Text, images & position",
+        "Preview-তে লেখা, ছবি বা লাইন ক্লিক করে টেনে সরান। ছবির কোণার নীল বক্স টেনে সাইজ বদলান; লাইনের দুই মাথার নীল বক্স টেনে লম্বা/বাঁকা করুন। যেকোনো ডিফল্ট লেখা/লাইন মুছে ফেলা যায়। পরিবর্তন সব certificate-এ প্রযোজ্য।":
+          "Click and drag text, images or lines in the preview to move them. Drag the blue box at an image's corner to resize it; drag the blue boxes at a line's ends to lengthen or angle it. Any default text or line can be deleted. Changes apply to all certificates.",
+        "ডিজাইনের বর্ডার/সাজসজ্জা দেখান (বন্ধ করে নিজের লাইন বসাতে পারবেন)":
+          "Show design border/decoration (turn off to place your own lines)",
+        "＋ লেখা": "+ Text",
+        "＋ ছবি/লোগো": "+ Image/Logo",
+        "＋ লাইন": "+ Line",
+        "＋ আকার / নম্বর / অক্ষর": "+ Shape / Number / Letter",
+        "লেখা (একাধিক লাইন চলবে)": "Text (multiple lines allowed)",
+        "সাইজ (px)": "Size (px)",
+        রং: "Color",
+        ফন্ট: "Font",
+        "ডিজাইনের ডিফল্ট": "Design default",
+        এলাইনমেন্ট: "Alignment",
+        মাঝখানে: "Center",
+        "বাঁ দিকে": "Left",
+        "ডান দিকে": "Right",
+        "≡ জাস্টিফাই (দুই পাশ সমান)": "≡ Justify (equal both sides)",
+        "লিস্ট স্টাইল (প্রতি লাইনে)": "List style (per line)",
+        নেই: "None",
+        "• বুলেট": "• Bullet",
+        "1. নম্বর": "1. Number",
+        "১. বাংলা নম্বর": "১. Bangla number",
+        "A. অক্ষর": "A. Letter",
+        "✓ টিক": "✓ Tick",
+        "➤ তীর": "➤ Arrow",
+        "★ স্টার": "★ Star",
+        "– ড্যাশ": "– Dash",
+        "বক্সের প্রস্থ px (০ = অটো)": "Box width px (0 = auto)",
+        "প্রস্থ দিলে লেখা ওই বক্সের ভেতরে ভেঙে সাজবে। জাস্টিফাইয়ে X = বক্সের মাঝখান।":
+          "If a width is set, the text wraps inside that box. For justify, X = center of the box.",
+        লুকান: "Hide",
+        "X (px, মাঝখান)": "X (px, center)",
+        "Y (px, মাঝখান)": "Y (px, center)",
+        "Width/Height-এর অনুপাত ঠিক রাখুন": "Keep Width/Height aspect ratio",
+        "Crop (ছবির যেদিক থেকে কাটবেন):":
+          "Crop (which side of the image to cut):",
+        "বাঁ দিক": "Left",
+        "ডান দিক": "Right",
+        ওপর: "Top",
+        নিচ: "Bottom",
+        "স্বচ্ছতা (Opacity)": "Opacity",
+        স্বচ্ছতা: "Opacity",
+        আকৃতি: "Shape",
+        "● বৃত্ত": "● Circle",
+        "■ চতুর্ভুজ": "■ Square",
+        "▢ গোল কোণার বক্স": "▢ Rounded box",
+        "▲ ত্রিভুজ": "▲ Triangle",
+        "◆ ডায়মন্ড": "◆ Diamond",
+        "⬟ পঞ্চভুজ": "⬟ Pentagon",
+        "⬢ ষড়ভুজ": "⬢ Hexagon",
+        "♥ হার্ট": "♥ Heart",
+        "✕ ক্রস": "✕ Cross",
+        "ভেতরের লেখা (নম্বর/অক্ষর)": "Inner text (number/letter)",
+        "যেমন: 1 বা A বা ক": "e.g. 1 or A",
+        "লেখার সাইজ (০ = অটো)": "Text size (0 = auto)",
+        "লেখার রং": "Text color",
+        "ভরাট রং": "Fill color",
+        "বর্ডারের রং": "Border color",
+        "বর্ডার মোটা (px)": "Border thickness (px)",
+        "ঘোরানো (ডিগ্রি)": "Rotation (degrees)",
+        "ভেতরে রং নেই (শুধু বর্ডার)": "No fill (border only)",
+        "⧉ কপি + পরের নম্বর/অক্ষর": "⧉ Copy + next number/letter",
+        "দৈর্ঘ্য (px)": "Length (px)",
+        "কোণ (ডিগ্রি)": "Angle (degrees)",
+        "মোটা (px)": "Thickness (px)",
+        ধরন: "Style",
+        "একটানা ———": "Solid ———",
+        "ড্যাশ - - -": "Dashed - - -",
+        "ডট · · ·": "Dotted · · ·",
+        "এটা রিসেট": "Reset this",
+        "ডিফল্ট সব রিসেট": "Reset all defaults",
+        "এই আইটেম মুছুন": "Delete this item",
+        "↺ মোছা ডিফল্ট লেখা/লাইন ফিরিয়ে আনুন":
+          "↺ Restore deleted default text/lines",
+        "৬. মাঝের মূল লেখা": "6. Main middle text",
+        "সব certificate-এ এই লাইনটা মাঝখানে বসবে (নাম ও প্রতিষ্ঠানের নিচে)":
+          "This line appears in the middle of every certificate (below the name and institution)",
+        "যেমন: has successfully completed the course on":
+          "e.g. has successfully completed the course on",
+        "তথ্য অসম্পূর্ণ (Name/Event/Date/Institution নেই) এমন certificate বাদ দিন":
+          "Skip certificates with incomplete info (missing Name/Event/Date/Institution)",
+        "সব Certificate PDF ডাউনলোড করুন": "Download all certificates as PDF",
+        "যেগুলো তৈরি হয়নি তার তথ্য (CSV)":
+          "Info for certificates not generated (CSV)",
+        "CSV আপলোড করলে এখানে certificate-এর preview দেখতে পাবেন":
+          "Upload a CSV to see the certificate preview here",
+        "◀ আগের": "◀ Previous",
+        "পরের ▶": "Next ▶",
+        মুছুন: "Remove",
+        সাদা: "White",
+        "ক্রিম পেপার": "Cream paper",
+        পার্চমেন্ট: "Parchment",
+        আকাশি: "Sky blue",
+        মিন্ট: "Mint",
+        গোলাপি: "Pink",
+        "ডট প্যাটার্ন": "Dot pattern",
+        ডায়াগোনাল: "Diagonal",
+        "ওয়াটারমার্ক রিং": "Watermark rings",
+        "CERTIFICATE (শিরোনাম)": "CERTIFICATE (title)",
+        "OF … (সার্টিফিকেটের ধরন)": "OF … (certificate type)",
+        নাম: "Name",
+        প্রতিষ্ঠান: "Institution",
+        "মাঝের লেখা": "Middle text",
+        "ইভেন্টের নাম": "Event name",
+        তারিখ: "Date",
+        '"Date" লেখা': '"Date" label',
+        "— শিরোনামের নিচের লাইন": "— Line under title",
+        "— নামের নিচের লাইন": "— Line under name",
+        "— তারিখের লাইন": "— Date line",
+        "— সইয়ের লাইন": "— Signature line",
+        "ডিফল্ট লেখা ও লাইন": "Default text & lines",
+        "আপনার যোগ করা": "Added by you",
+        লাইন: "Line",
+        আকার: "Shape",
+        "(খালি)": "(empty)",
+      };
+      Object.assign(EN, {
+        ডেভেলপার: "Developer",
+        নম্বর: "Number",
+        ইমেইল: "Email",
+        "ইমেইল পাঠান": "Send an email",
+        "প্রাপক": "To",
+        "বিষয়": "Subject",
+        "আপনার বার্তা": "Your message",
+        "মেইলের বিষয় লিখুন": "Enter the email subject",
+        "এখানে আপনার বার্তা লিখুন...": "Write your message here...",
+        "নিচের যেকোনো বাটনে চাপলে আপনার লেখা মেইলটি তৈরি হয়ে যাবে, সেখান থেকে Send চাপুন।": "Either button below opens a ready-made draft with your text — just press Send there.",
+        "Gmail-এ খুলুন": "Open in Gmail",
+        "মেইল অ্যাপে খুলুন": "Open in mail app",
+      });
+      Object.assign(EN, {
+        "স্টুডেন্ট আইডি": "Student ID",
+        "ক্লাস": "Class",
+        "ডিপার্টমেন্ট": "Department",
+        "গ্রুপ": "Group",
+        "⧉ ডুপ্লিকেট করুন": "⧉ Duplicate",
+        "লেয়ার (উপরে/নিচে)": "Layer (front/back)",
+        "⬆ সবার উপরে": "⬆ Bring to front",
+        "⬇ সবার নিচে": "⬇ Send to back",
+        "↑ এক ধাপ উপরে": "↑ Forward one step",
+        "↓ এক ধাপ নিচে": "↓ Back one step",
+      });
+      // ===== Developer info — fill these in =====
+      const DEVELOPER = {
+        name: "Md.Badrul Alom",
+        number: "+880 1648008842",
+        email: "mdbd644@gmail.com",
+        linkedin: "https://www.linkedin.com/in/md-badrul-alom-716b18193/",
+        facebook: "https://web.facebook.com/shameem.023",
+      };
+      const tr = (bn, en) => (lang === "en" ? en : bn);
+      const t = (s) =>
+        lang === "en"
+          ? Object.prototype.hasOwnProperty.call(EN, s)
+            ? EN[s]
+            : s
+          : s;
+      const origText = new WeakMap();
+      const normWS = (s) => s.replace(/\s+/g, " ").trim();
+      function applyLang() {
+        document.documentElement.lang = lang;
+        const w = document.createTreeWalker(
+          document.body,
+          NodeFilter.SHOW_TEXT,
+          {
+            acceptNode: (n) => {
+              if (!n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+              const p = n.parentElement;
+              return !p || p.closest("script,style,[data-dyn],#langSw")
+                ? NodeFilter.FILTER_REJECT
+                : NodeFilter.FILTER_ACCEPT;
+            },
+          },
+        );
+        const nodes = [];
+        while (w.nextNode()) nodes.push(w.currentNode);
+        nodes.forEach((n) => {
+          let o = origText.get(n);
+          if (o === undefined) {
+            if (!Object.prototype.hasOwnProperty.call(EN, normWS(n.nodeValue)))
+              return;
+            o = n.nodeValue;
+            origText.set(n, o);
+          }
+          const m = o.match(/^(\s*)([\s\S]*?)(\s*)$/);
+          n.nodeValue = lang === "en" ? m[1] + EN[normWS(o)] + m[3] : o;
+        });
+        document.querySelectorAll("[placeholder]").forEach((el) => {
+          if (el.dataset.phBn === undefined)
+            el.dataset.phBn = el.getAttribute("placeholder");
+          const o = el.dataset.phBn;
+          el.setAttribute(
+            "placeholder",
+            lang === "en" && Object.prototype.hasOwnProperty.call(EN, o)
+              ? EN[o]
+              : o,
+          );
+        });
+      }
+
+      const ALL_DESIGNS = [
+        {
+          id: 1,
+          label: "Classic Navy",
+          bg: "#ffffff",
+          primary: "#1b2a4a",
+          accent: "#c9a227",
+          accentLight: "#e8d9a8",
+          muted: "#4a4a4a",
+          font: "Georgia, serif",
+          border: "boxcorner",
+        },
+        {
+          id: 2,
+          label: "Modern Minimal",
+          bg: "#ffffff",
+          primary: "#14181f",
+          accent: "#0f766e",
+          accentLight: "#9fd9d0",
+          muted: "#5b6068",
+          font: "Inter, sans-serif",
+          border: "lines",
+        },
+        {
+          id: 3,
+          label: "Elegant Maroon",
+          bg: "#faf3e8",
+          primary: "#5c1a2b",
+          accent: "#b08d57",
+          accentLight: "#e3cfa5",
+          muted: "#6b5a4a",
+          font: "Georgia, serif",
+          border: "boxcorner",
+        },
+        {
+          id: 4,
+          label: "Emerald & Gold",
+          bg: "#ffffff",
+          primary: "#0b3d2e",
+          accent: "#c9a227",
+          accentLight: "#e8d9a8",
+          muted: "#3f3f3f",
+          font: "Georgia, serif",
+          border: "topband",
+        },
+        {
+          id: 5,
+          label: "Royal Blue",
+          bg: "#ffffff",
+          primary: "#1e3a8a",
+          accent: "#0ea5e9",
+          accentLight: "#bfe6fb",
+          muted: "#525a68",
+          font: "Inter, sans-serif",
+          border: "diagonal",
+        },
+      ];
+      let DESIGNS = ALL_DESIGNS.slice();
+
+      let rows = [];
+      let currentIdx = 0;
+      let selectedDesign = DESIGNS[0];
+
+      const ALL_BACKGROUNDS = [
+        { id: 0, label: "ডিজাইনের ডিফল্ট" },
+        { id: 1, label: "সাদা" },
+        { id: 2, label: "ক্রিম পেপার" },
+        { id: 3, label: "পার্চমেন্ট" },
+        { id: 4, label: "আকাশি" },
+        { id: 5, label: "মিন্ট" },
+        { id: 6, label: "গোলাপি" },
+        { id: 7, label: "ডট প্যাটার্ন" },
+        { id: 8, label: "ডায়াগোনাল" },
+        { id: 9, label: "ওয়াটারমার্ক রিং" },
+      ];
+      let BACKGROUNDS = ALL_BACKGROUNDS.slice();
+      let selectedBg = BACKGROUNDS[0];
+
+      function vGrad(ctx, c1, c2) {
+        const g = ctx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, c1);
+        g.addColorStop(1, c2);
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+      }
+      function drawBackground(ctx, id, base) {
+        ctx.save();
+        ctx.fillStyle = id === 0 ? base : "#ffffff";
+        ctx.fillRect(0, 0, W, H);
+        if (id === 2) vGrad(ctx, "#fffdf6", "#f5edd8");
+        else if (id === 3) {
+          const g = ctx.createRadialGradient(
+            W / 2,
+            H / 2,
+            H * 0.2,
+            W / 2,
+            H / 2,
+            W * 0.65,
+          );
+          g.addColorStop(0, "#fcf6e2");
+          g.addColorStop(1, "#e9d8a8");
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, W, H);
+        } else if (id === 4) vGrad(ctx, "#e3f0ff", "#ffffff");
+        else if (id === 5) vGrad(ctx, "#e6f8ee", "#ffffff");
+        else if (id === 6) vGrad(ctx, "#ffeaee", "#ffffff");
+        else if (id === 7) {
+          ctx.fillStyle = "rgba(201,162,39,0.28)";
+          for (let y = 20; y < H; y += 32)
+            for (let x = 20; x < W; x += 32) {
+              ctx.beginPath();
+              ctx.arc(x, y, 2.4, 0, Math.PI * 2);
+              ctx.fill();
+            }
+        } else if (id === 8) {
+          ctx.strokeStyle = "rgba(27,42,74,0.07)";
+          ctx.lineWidth = 14;
+          for (let k = -H; k < W; k += 44) {
+            ctx.beginPath();
+            ctx.moveTo(k, H);
+            ctx.lineTo(k + H, 0);
+            ctx.stroke();
+          }
+        } else if (id === 9) {
+          ctx.strokeStyle = "rgba(201,162,39,0.22)";
+          ctx.lineWidth = 2;
+          for (let r = 60; r <= 520; r += 40) {
+            ctx.beginPath();
+            ctx.arc(W / 2, H / 2, r, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+        ctx.restore();
+      }
+
+      function xBtn(onClick) {
+        const x = document.createElement("button");
+        x.type = "button";
+        x.className = "x";
+        x.textContent = "×";
+        x.title = t("মুছুন");
+        x.addEventListener("click", (e) => {
+          e.stopPropagation();
+          onClick();
+        });
+        return x;
+      }
+      function buildBgGrid() {
+        const grid = document.getElementById("bgGrid");
+        grid.innerHTML = "";
+        BACKGROUNDS.forEach((b) => {
+          const el = document.createElement("div");
+          el.className = "swatch" + (b.id === selectedBg.id ? " active" : "");
+          const c = document.createElement("canvas");
+          c.className = "thumb";
+          c.width = 140;
+          c.height = 99;
+          const cx = c.getContext("2d");
+          cx.scale(140 / W, 99 / H);
+          drawBackground(cx, b.id, selectedDesign.bg);
+          const sp = document.createElement("span");
+          sp.textContent = t(b.label);
+          el.appendChild(c);
+          el.appendChild(sp);
+          if (BACKGROUNDS.length > 1)
+            el.appendChild(
+              xBtn(() => {
+                BACKGROUNDS = BACKGROUNDS.filter((x) => x.id !== b.id);
+                if (selectedBg.id === b.id) selectedBg = BACKGROUNDS[0];
+                buildBgGrid();
+                renderPreview();
+              }),
+            );
+          el.addEventListener("click", () => {
+            selectedBg = b;
+            buildBgGrid();
+            renderPreview();
+          });
+          grid.appendChild(el);
+        });
+        document.getElementById("restoreBgs").style.display =
+          BACKGROUNDS.length < ALL_BACKGROUNDS.length ? "inline-block" : "none";
+      }
+
+      const REQUIRED = [
+        ["name", "Name"],
+        ["event", "Event Name"],
+        ["date", "Date"],
+        ["institution", "Institution"],
+      ];
+      let missingList = [];
+      function checkMissing() {
+        missingList = [];
+        rows.forEach((r, i) => {
+          const d = rowData(i);
+          const missing = REQUIRED.filter(([k]) => !d[k]).map(([, l]) => l);
+          if (missing.length) missingList.push({ i, d, missing });
+        });
+        const box = document.getElementById("warnBox");
+        if (missingList.length) {
+          document.getElementById("warnText").textContent = tr(
+            `⚠ ${rows.length} জনের মধ্যে ${missingList.length} জনের তথ্য অসম্পূর্ণ। নিচের বাটনে সেই তথ্যগুলোর CSV পাবেন — পূরণ করে আবার আপলোড করতে পারেন।`,
+            `⚠ ${missingList.length} of ${rows.length} records have incomplete info. Use the button below to get a CSV of those records — fill them in and upload again.`,
+          );
+          box.style.display = "block";
+        } else box.style.display = "none";
+      }
+      function downloadMissingCsv() {
+        if (!missingList.length) return;
+        const data = missingList.map((m) => ({
+          "Row No.": m.i + 1,
+          Name: m.d.name,
+          "Event Name": m.d.event,
+          Date: m.d.date,
+          Institution: m.d.institution,
+          "Team Name": m.d.team,
+          "Student ID": m.d.studentId,
+          Class: m.d.className,
+          Department: m.d.dept,
+          Group: m.d.group,
+          "Missing Fields": m.missing.join(", "),
+        }));
+        const blob = new Blob(["\ufeff" + Papa.unparse(data)], {
+          type: "text/csv;charset=utf-8",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "missing-info.csv";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 3000);
+      }
+      document.addEventListener("click", (e) => {
+        if (e.target && e.target.id === "missBtn") downloadMissingCsv();
+      });
+
+      const ELEMENTS = [
+        { id: "title", label: "CERTIFICATE (শিরোনাম)" },
+        { id: "subtitle", label: "OF … (সার্টিফিকেটের ধরন)" },
+        { id: "certify", label: "This is to certify that" },
+        { id: "name", label: "নাম" },
+        { id: "institution", label: "প্রতিষ্ঠান" },
+        { id: "middle", label: "মাঝের লেখা" },
+        { id: "event", label: "ইভেন্টের নাম" },
+        { id: "studentId", label: "স্টুডেন্ট আইডি" },
+        { id: "className", label: "ক্লাস" },
+        { id: "dept", label: "ডিপার্টমেন্ট" },
+        { id: "group", label: "গ্রুপ" },
+        { id: "date", label: "তারিখ" },
+        { id: "dateLbl", label: '"Date" লেখা' },
+        { id: "sigLbl", label: "Authorized Signature" },
+        { id: "subLine", label: "— শিরোনামের নিচের লাইন", kind: "line" },
+        { id: "nameLine", label: "— নামের নিচের লাইন", kind: "line" },
+        { id: "dateLine", label: "— তারিখের লাইন", kind: "line" },
+        { id: "sigLine", label: "— সইয়ের লাইন", kind: "line" },
+      ];
+      const STATIC_TEXT = {
+        title: "C E R T I F I C A T E",
+        certify: "This is to certify that",
+        dateLbl: "Date",
+        sigLbl: "Authorized Signature",
+      };
+      let showDecor = true,
+        lineCache = {},
+        handles = [];
+      const BNd = "০১২৩৪৫৬৭৮৯",
+        toBn = (n) => String(n).replace(/\d/g, (x) => BNd[x]),
+        fromBn = (t) => t.replace(/[০-৯]/g, (x) => BNd.indexOf(x));
+      function nextLabel(t) {
+        t = String(t || "").trim();
+        if (/^\d+$/.test(t)) return String(+t + 1);
+        if (/^[০-৯]+$/.test(t)) return toBn(+fromBn(t) + 1);
+        if (/^[A-Za-z]$/.test(t)) {
+          const z =
+            t === "z"
+              ? "a"
+              : t === "Z"
+                ? "A"
+                : String.fromCharCode(t.charCodeAt(0) + 1);
+          return z;
+        }
+        const m = t.match(/^(.*?)(\d+)$/);
+        if (m) return m[1] + (+m[2] + 1);
+        return t;
+      }
+      function shapePath(ctx, k, w, h) {
+        const rx = w / 2,
+          ry = h / 2;
+        ctx.beginPath();
+        const poly = (pts) => {
+          pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+          ctx.closePath();
+        };
+        const reg = (n) => {
+          const a = [];
+          for (let i = 0; i < n; i++) {
+            const t = -Math.PI / 2 + (i * 2 * Math.PI) / n;
+            a.push([rx * Math.cos(t), ry * Math.sin(t)]);
+          }
+          poly(a);
+        };
+        switch (k) {
+          case "square":
+            ctx.rect(-rx, -ry, w, h);
+            break;
+          case "rounded": {
+            const r = Math.min(w, h) * 0.22;
+            ctx.moveTo(-rx + r, -ry);
+            ctx.arcTo(rx, -ry, rx, ry, r);
+            ctx.arcTo(rx, ry, -rx, ry, r);
+            ctx.arcTo(-rx, ry, -rx, -ry, r);
+            ctx.arcTo(-rx, -ry, rx, -ry, r);
+            ctx.closePath();
+            break;
+          }
+          case "triangle":
+            poly([
+              [0, -ry],
+              [rx, ry],
+              [-rx, ry],
+            ]);
+            break;
+          case "diamond":
+            poly([
+              [0, -ry],
+              [rx, 0],
+              [0, ry],
+              [-rx, 0],
+            ]);
+            break;
+          case "pentagon":
+            reg(5);
+            break;
+          case "hexagon":
+            reg(6);
+            break;
+          case "star": {
+            const a = [];
+            for (let i = 0; i < 10; i++) {
+              const t = -Math.PI / 2 + (i * Math.PI) / 5,
+                r = i % 2 ? 0.42 : 1;
+              a.push([rx * r * Math.cos(t), ry * r * Math.sin(t)]);
+            }
+            poly(a);
+            break;
+          }
+          case "heart":
+            ctx.moveTo(0, 0.9 * ry);
+            ctx.bezierCurveTo(
+              -1.3 * rx,
+              0.1 * ry,
+              -0.9 * rx,
+              -1 * ry,
+              0,
+              -0.35 * ry,
+            );
+            ctx.bezierCurveTo(
+              0.9 * rx,
+              -1 * ry,
+              1.3 * rx,
+              0.1 * ry,
+              0,
+              0.9 * ry,
+            );
+            ctx.closePath();
+            break;
+          case "arrow":
+            poly([
+              [-rx, -0.2 * ry],
+              [0.1 * rx, -0.2 * ry],
+              [0.1 * rx, -ry],
+              [rx, 0],
+              [0.1 * rx, ry],
+              [0.1 * rx, 0.2 * ry],
+              [-rx, 0.2 * ry],
+            ]);
+            break;
+          case "check":
+            ctx.moveTo(-0.42 * rx, 0.05 * ry);
+            ctx.lineTo(-0.1 * rx, 0.55 * ry);
+            ctx.lineTo(0.5 * rx, -0.55 * ry);
+            break;
+          case "cross":
+            ctx.moveTo(-0.5 * rx, -0.5 * ry);
+            ctx.lineTo(0.5 * rx, 0.5 * ry);
+            ctx.moveTo(0.5 * rx, -0.5 * ry);
+            ctx.lineTo(-0.5 * rx, 0.5 * ry);
+            break;
+          default:
+            ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+        }
+      }
+      let over = {},
+        selectedEl = "name",
+        hitBoxes = [],
+        drag = null,
+        failedList = [],
+        customs = [],
+        nextId = 1;
+      function defaultsFor(d) {
+        const top = d.border === "topband",
+          cx = W / 2,
+          bY = H - 130;
+        const t = (x, y, size, color, o) =>
+          Object.assign(
+            {
+              x,
+              y,
+              size,
+              color,
+              bold: false,
+              italic: false,
+              underline: false,
+              hidden: false,
+              font: "",
+              align: "center",
+              list: "",
+            },
+            o || {},
+          );
+        return {
+          title: t(
+            cx,
+            top ? 90 : 130,
+            26,
+            top && showDecor ? "#ffffff" : d.accent,
+            { bold: true },
+          ),
+          subtitle: t(
+            cx,
+            top ? 122 : 158,
+            20,
+            top && showDecor ? d.accent : d.muted,
+          ),
+          certify: t(cx, 232, 24, d.muted),
+          name: t(cx, 300, 58, d.primary, { bold: true }),
+          institution: t(cx, 356, 22, d.muted, { italic: true }),
+          middle: t(cx, 410, 22, d.muted),
+          event: t(cx, 458, 30, d.primary, { bold: true }),
+          studentId: t(cx, 520, 22, d.muted),
+          className: t(cx, 560, 22, d.muted),
+          dept: t(cx, 600, 22, d.muted),
+          group: t(cx, 640, 22, d.muted),
+          date: t(W * 0.26 + 65, bY + 30, 18, d.muted),
+          dateLbl: t(W * 0.26 + 65, bY + 52, 15, d.muted, { italic: true }),
+          sigLbl: t(W * 0.74, bY + 52, 15, d.muted, { italic: true }),
+        };
+      }
+      function eff(id, d) {
+        const c = customs.find((x) => x.id === id);
+        if (c) return c;
+        return Object.assign({}, defaultsFor(d)[id], over[id] || {});
+      }
+
+      function pick(row, ...cands) {
+        const lower = {};
+        for (const k in row)
+          lower[k.trim().toLowerCase()] = (row[k] || "").toString().trim();
+        for (const c of cands) {
+          const v = lower[c.toLowerCase()];
+          if (v) return v;
+        }
+        return "";
+      }
+
+      function fitFont(ctx, text, maxW, startSize, minSize, weight, fam) {
+        let size = startSize;
+        ctx.font = `${weight} ${size}px ${fam}`;
+        while (ctx.measureText(text).width > maxW && size > minSize) {
+          size--;
+          ctx.font = `${weight} ${size}px ${fam}`;
+        }
+        return size;
+      }
+
+      // ===== fonts + inline rich text (<b> <i> <u> <c=#hex> <f=font> <s=px>) =====
+      const FONTS = [
+        ["Classic / Serif", [["Georgia","Georgia, serif"],["Times New Roman","'Times New Roman', serif"],["Playfair Display","'Playfair Display', serif"],["Cormorant Garamond","'Cormorant Garamond', serif"],["EB Garamond","'EB Garamond', serif"],["Lora","Lora, serif"],["Merriweather","Merriweather, serif"],["Libre Baskerville","'Libre Baskerville', serif"],["Cinzel","Cinzel, serif"],["Cinzel Decorative","'Cinzel Decorative', serif"],["Abril Fatface","'Abril Fatface', serif"]]],
+        ["Script / Handwriting", [["Great Vibes","'Great Vibes', cursive"],["Dancing Script","'Dancing Script', cursive"],["Allura","Allura, cursive"],["Alex Brush","'Alex Brush', cursive"],["Parisienne","Parisienne, cursive"],["Sacramento","Sacramento, cursive"],["Satisfy","Satisfy, cursive"],["Pacifico","Pacifico, cursive"],["Playball","Playball, cursive"],["Lobster","Lobster, cursive"]]],
+        ["Sans / Modern", [["Inter","Inter, sans-serif"],["Montserrat","Montserrat, sans-serif"],["Poppins","Poppins, sans-serif"],["Roboto","Roboto, sans-serif"],["Oswald","Oswald, sans-serif"],["Bebas Neue","'Bebas Neue', sans-serif"],["Courier New","'Courier New', monospace"]]],
+        ["বাংলা", [["Hind Siliguri","'Hind Siliguri', sans-serif"],["Noto Sans Bengali","'Noto Sans Bengali', sans-serif"],["Noto Serif Bengali","'Noto Serif Bengali', serif"],["Baloo Da 2","'Baloo Da 2', sans-serif"],["Anek Bangla","'Anek Bangla', sans-serif"],["Tiro Bangla","'Tiro Bangla', serif"],["Galada","Galada, cursive"],["Mina","Mina, sans-serif"],["Atma","Atma, cursive"]]],
+      ];
+      function fillFontSelect(sel, first) {
+        sel.innerHTML = "";
+        sel.appendChild(new Option(first, ""));
+        FONTS.forEach(([g, list]) => {
+          const og = document.createElement("optgroup");
+          og.label = g;
+          list.forEach(([n, css]) => { const o = new Option(n, css); o.style.fontFamily = css; og.appendChild(o); });
+          sel.appendChild(og);
+        });
+      }
+      const fontsReady = document.fonts
+        ? Promise.all(FONTS.flatMap(([, l]) => l.flatMap(([, css]) => [document.fonts.load("400 20px " + css, "Aa কখ"), document.fonts.load("700 20px " + css, "Aa কখ")]))).catch(() => {})
+        : Promise.resolve();
+      function parseRuns(str, b) {
+        const st = { b: b.bold, i: b.italic, u: b.underline, c: b.color, f: b.font, s: b.size };
+        const stk = { b: [], i: [], u: [], c: [], f: [], s: [] }, out = [], re = /<(\/?)([biucfs])(?:=([^>]*))?>/g;
+        let last = 0, m;
+        const push = (t) => { if (t) out.push(Object.assign({ t }, st)); };
+        while ((m = re.exec(str))) {
+          push(str.slice(last, m.index)); last = re.lastIndex;
+          const k = m[2];
+          if (m[1]) { if (stk[k].length) st[k] = stk[k].pop(); }
+          else { stk[k].push(st[k]); st[k] = "biu".includes(k) ? true : k === "s" ? parseFloat(m[3]) || st.s : m[3] || st[k]; }
+        }
+        push(str.slice(last));
+        return out;
+      }
+
+      function abbrDept(v) {
+        v = String(v || "").trim();
+        if (!v) return "";
+        const m = v.match(/\(([^)]{2,10})\)/);
+        if (m) return m[1].trim();
+        if (/[^\x00-\x7F]/.test(v)) return v;
+        const w = v.replace(/[^A-Za-z0-9&\s]/g, " ").split(/\s+/).filter((x) => x && !/^(and|of|the|in|for|department|dept|&)$/i.test(x));
+        if (w.length < 2) return w[0] || v;
+        return w.map((x) => x[0].toUpperCase()).join("");
+      }
+      let layer = [];
+      function layerOrder() {
+        const all = [...ELEMENTS.map((e) => e.id), ...customs.map((c) => c.id)];
+        layer = layer.filter((id) => all.includes(id));
+        all.forEach((id) => {
+          if (layer.includes(id)) return;
+          const c = customs.find((x) => x.id === id);
+          if (c && c.type === "img") layer.unshift(id);
+          else layer.push(id);
+        });
+        return layer;
+      }
+      function rotAbout(x, y, w, h, px, py, deg) {
+        const a = ((deg || 0) * Math.PI) / 180, co = Math.cos(a), si = Math.sin(a);
+        const pts = [[x, y], [x + w, y], [x, y + h], [x + w, y + h]].map(([qx, qy]) => [
+          px + (qx - px) * co - (qy - py) * si,
+          py + (qx - px) * si + (qy - py) * co,
+        ]);
+        const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
+        return { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) };
+      }
+      function drawCertificate(canvas, data, d, opts) {
+        opts = opts || {};
+        if (opts.preview) {
+          hitBoxes = [];
+          handles = [];
+        }
+        canvas.width = W;
+        canvas.height = H;
+        const ctx = canvas.getContext("2d");
+        drawBackground(ctx, selectedBg.id, d.bg);
+        ctx.textAlign = "center";
+        const cx = W / 2;
+        let topY = 130,
+          subY = 158;
+
+        if (!showDecor) {
+        } else if (d.border === "boxcorner") {
+          const margin = 26;
+          ctx.strokeStyle = d.accent;
+          ctx.lineWidth = 3;
+          ctx.strokeRect(margin, margin, W - 2 * margin, H - 2 * margin);
+          const inner = margin + 10;
+          ctx.strokeStyle = d.primary;
+          ctx.lineWidth = 1;
+          ctx.strokeRect(inner, inner, W - 2 * inner, H - 2 * inner);
+          const corner = 40;
+          ctx.strokeStyle = d.accent;
+          ctx.lineWidth = 3;
+          [
+            [margin, margin, 1, 1],
+            [W - margin, margin, -1, 1],
+            [margin, H - margin, 1, -1],
+            [W - margin, H - margin, -1, -1],
+          ].forEach(([x, y, dx, dy]) => {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + dx * corner, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, y + dy * corner);
+            ctx.stroke();
+          });
+        } else if (d.border === "lines") {
+          ctx.strokeStyle = d.primary;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(70, 70);
+          ctx.lineTo(W - 70, 70);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(70, H - 70);
+          ctx.lineTo(W - 70, H - 70);
+          ctx.stroke();
+          ctx.strokeStyle = d.accent;
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.moveTo(70, 70);
+          ctx.lineTo(70, H - 70);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(W - 70, 70);
+          ctx.lineTo(W - 70, H - 70);
+          ctx.stroke();
+        } else if (d.border === "topband") {
+          ctx.fillStyle = d.primary;
+          ctx.fillRect(0, 0, W, 150);
+          ctx.strokeStyle = d.accent;
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(0, 150);
+          ctx.lineTo(W, 150);
+          ctx.stroke();
+          ctx.strokeStyle = d.accent;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(30, 180, W - 60, H - 210);
+          topY = 90;
+          subY = 122;
+        } else if (d.border === "diagonal") {
+          ctx.fillStyle = d.primary;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(260, 0);
+          ctx.lineTo(0, 200);
+          ctx.closePath();
+          ctx.fill();
+          ctx.fillStyle = d.accentLight;
+          ctx.beginPath();
+          ctx.moveTo(W, H);
+          ctx.lineTo(W - 260, H);
+          ctx.lineTo(W, H - 200);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = d.accent;
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(36, 36, W - 72, H - 72);
+        }
+
+        function drawImg(c) {
+          if (c.hidden) return;
+          const sx = (c.nw * c.cropL) / 100,
+            sy = (c.nh * c.cropT) / 100,
+            sw = c.nw * (1 - (c.cropL + c.cropR) / 100),
+            sh = c.nh * (1 - (c.cropT + c.cropB) / 100);
+          ctx.save();
+          ctx.globalAlpha = c.opacity / 100;
+          ctx.translate(c.x, c.y);
+          ctx.rotate(((c.rot || 0) * Math.PI) / 180);
+          ctx.drawImage(c.el, sx, sy, sw, sh, -c.w / 2, -c.h / 2, c.w, c.h);
+          ctx.restore();
+          if (opts.preview)
+            hitBoxes.push(Object.assign({ id: c.id, img: true }, rotAbout(c.x - c.w / 2, c.y - c.h / 2, c.w, c.h, c.x, c.y, c.rot)));
+        }
+        const fnt = (e, sz) =>
+          `${e.italic ? "italic " : ""}${e.bold ? "700" : "400"} ${sz}px ${e.font || d.font}`;
+        const LP = {
+          bullet: (i) => "• ",
+          num: (i) => i + 1 + ". ",
+          bnum: (i) => toBn(i + 1) + ". ",
+          alpha: (i) => String.fromCharCode(65 + (i % 26)) + ". ",
+          tick: (i) => "✓ ",
+          arrow: (i) => "➤ ",
+          star: (i) => "★ ",
+          dash: (i) => "– ",
+        };
+        function T(id, text) {
+          const e = eff(id, d);
+          if (e.hidden || e.deleted || !text) return null;
+          const al = e.align || "center",
+            bw = e.boxW > 0 ? e.boxW : al === "justify" ? 900 : 0,
+            pf = LP[e.list];
+          let sz = e.size;
+          ctx.font = fnt(e, sz);
+          if (id === "name") {
+            const first = String(text).split("\n")[0];
+            while (ctx.measureText(first).width > W - 260 && sz > 30) {
+              sz--;
+              ctx.font = fnt(e, sz);
+            }
+          }
+          const base = { bold: e.bold, italic: e.italic, underline: e.underline, color: e.color, font: e.font || d.font, size: sz };
+          const rf = (r) => `${r.i ? "italic " : ""}${r.b ? 700 : 400} ${r.s}px ${r.f}`;
+          const mw = (k) => { ctx.font = rf(k.st); return ctx.measureText(k.t).width; };
+          const lines = [];
+          String(text).split("\n").forEach((ln, i) => {
+            const toks = [];
+            parseRuns((pf ? pf(i) : "") + ln, base).forEach((r) =>
+              r.t.split(/(\s+)/).forEach((q) => {
+                if (q) { const isSp = /^\s+$/.test(q); toks.push({ t: isSp ? q.replace(/\t/g, "    ") : q, st: r, sp: isSp }); }
+              }));
+            const units = []; let u = [];
+            toks.forEach((k) => { if (k.sp) { if (u.length) units.push(u); units.push([k]); u = []; } else u.push(k); });
+            if (u.length) units.push(u);
+            let cur = [], cw = 0, sp = null, firstLine = true;
+            if (!(bw > 0)) { lines.push({ tk: toks, just: false }); return; }
+            units.forEach((un) => {
+              if (un[0].sp) {
+                if (cur.length) sp = un[0];
+                else if (firstLine) { un[0].lead = true; cur.push(un[0]); cw += mw(un[0]); }
+                return;
+              }
+              const uw = un.reduce((q, k) => q + mw(k), 0), sw = sp ? mw(sp) : 0;
+              if (bw > 0 && cur.length && cw + sw + uw > bw) { lines.push({ tk: cur, just: true }); cur = []; cw = 0; sp = null; firstLine = false; }
+              if (sp && cur.length) { cur.push(sp); cw += sw; }
+              sp = null; cur.push(...un); cw += uw;
+            });
+            lines.push({ tk: cur, just: false });
+          });
+          let w = 0, yy = e.y;
+          ctx.save();
+          if (e.rot) { ctx.translate(e.x, e.y); ctx.rotate((e.rot * Math.PI) / 180); ctx.translate(-e.x, -e.y); }
+          lines.forEach((L) => {
+            L.tk.forEach((k) => (k.w = mw(k)));
+            const lsz = Math.max(sz, ...L.tk.map((k) => k.st.s)), spc = L.tk.filter((k) => k.sp && !k.lead);
+            let lw = L.tk.reduce((q, k) => q + k.w, 0);
+            if (al === "justify" && L.just && spc.length) {
+              const g = (bw - (lw - spc.reduce((q, k) => q + k.w, 0))) / spc.length;
+              spc.forEach((k) => (k.w = g)); lw = bw;
+            }
+            let x = al === "justify" ? e.x - bw / 2 : al === "left" ? e.x : al === "right" ? e.x - lw : e.x - lw / 2;
+            ctx.textAlign = "left";
+            L.tk.forEach((k) => {
+              if (!k.sp) { ctx.font = rf(k.st); ctx.fillStyle = k.st.c; ctx.fillText(k.t, x, yy); }
+              if (k.st.u) {
+                ctx.strokeStyle = k.st.c; ctx.lineWidth = Math.max(1, k.st.s / 16);
+                ctx.beginPath(); ctx.moveTo(x, yy + k.st.s * 0.15); ctx.lineTo(x + k.w, yy + k.st.s * 0.15); ctx.stroke();
+              }
+              x += k.w;
+            });
+            w = Math.max(w, al === "justify" ? bw : lw);
+            yy += lsz * 1.3;
+          });
+          ctx.restore();
+          const bx = al === "justify" ? e.x - bw / 2 : al === "left" ? e.x : al === "right" ? e.x - w : e.x - w / 2;
+          if (opts.preview) hitBoxes.push(Object.assign({ id }, e.rot ? rotAbout(bx, e.y - sz, w, yy - e.y, e.x, e.y, e.rot) : { x: bx, y: e.y - sz, w, h: yy - e.y }));
+          return { e, w, sz };
+        }
+        function drawLine(l, id) {
+          if (l.hidden || l.deleted) return;
+          const a = (l.angle * Math.PI) / 180,
+            dx = (Math.cos(a) * l.len) / 2,
+            dy = (Math.sin(a) * l.len) / 2;
+          const x1 = l.x - dx,
+            y1 = l.y - dy,
+            x2 = l.x + dx,
+            y2 = l.y + dy;
+          ctx.save();
+          ctx.globalAlpha = l.opacity / 100;
+          ctx.strokeStyle = l.color;
+          ctx.lineWidth = l.thick;
+          ctx.lineCap = l.dash === "dotted" ? "round" : "butt";
+          ctx.setLineDash(
+            l.dash === "dashed"
+              ? [l.thick * 6, l.thick * 4]
+              : l.dash === "dotted"
+                ? [0.1, l.thick * 2.6]
+                : [],
+          );
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+          ctx.restore();
+          if (opts.preview)
+            hitBoxes.push({ id, line: { x1, y1, x2, y2 }, thick: l.thick });
+        }
+        function drawShape(c) {
+          if (c.hidden) return;
+          const rot = (c.rot * Math.PI) / 180;
+          ctx.save();
+          ctx.globalAlpha = c.opacity / 100;
+          ctx.translate(c.x, c.y);
+          ctx.rotate(rot);
+          shapePath(ctx, c.shape, c.w, c.h);
+          if (c.shape === "check" || c.shape === "cross") {
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.lineWidth = Math.min(c.w, c.h) * 0.16;
+            ctx.strokeStyle = c.fill;
+            ctx.stroke();
+          } else {
+            if (!c.noFill) {
+              ctx.fillStyle = c.fill;
+              ctx.fill();
+            }
+            if (c.strokeW > 0) {
+              ctx.lineWidth = c.strokeW;
+              ctx.strokeStyle = c.stroke;
+              ctx.lineJoin = "round";
+              ctx.stroke();
+            }
+          }
+          ctx.restore();
+          if (c.text) {
+            const sz =
+              c.tsize > 0
+                ? c.tsize
+                : Math.max(8, Math.round(Math.min(c.w, c.h) * 0.5));
+            ctx.save();
+            ctx.globalAlpha = c.opacity / 100;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = `700 ${sz}px ${c.font || d.font}`;
+            ctx.fillStyle = c.tcolor;
+            ctx.fillText(c.text, c.x, c.y + sz * 0.05);
+            ctx.restore();
+          }
+          if (opts.preview) {
+            const cs = Math.abs(Math.cos(rot)),
+              sn = Math.abs(Math.sin(rot)),
+              bw = c.w * cs + c.h * sn,
+              bh = c.w * sn + c.h * cs;
+            hitBoxes.push({
+              id: c.id,
+              x: c.x - bw / 2,
+              y: c.y - bh / 2,
+              w: bw,
+              h: bh,
+              img: true,
+            });
+          }
+        }
+        const ST = STATIC_TEXT;
+        const middle = data.middleText || "has successfully participated in";
+        const eSub = eff("subtitle", d), eNm = eff("name", d), eDt = eff("date", d), eSg = eff("sigLbl", d);
+        const nameText = data.name || "________________";
+        const nmW = () => {
+          if (eNm.hidden || eNm.deleted) return 300;
+          const lns = String(nameText).split("\n");
+          let sz = eNm.size;
+          ctx.font = fnt(eNm, sz);
+          while (ctx.measureText(lns[0]).width > W - 260 && sz > 30) { sz--; ctx.font = fnt(eNm, sz); }
+          return Math.max(...lns.map((x) => ctx.measureText(x).width));
+        };
+        const LB = (x, y, len, thick, color) => ({ x, y, len, angle: 0, thick, color, dash: "solid", opacity: 100, hidden: false });
+        const slDef = {
+          subLine: () => LB(eSub.x, eSub.y + 14, 180, 1.4, d.accent),
+          nameLine: () => LB(eNm.x, eNm.y + 18, nmW() + 48, 1.6, d.accentLight),
+          dateLine: () => LB(eDt.x, eDt.y - 30, 130, 1, d.muted),
+          sigLine: () => LB(eSg.x, eSg.y - 52, 130, 1, d.muted),
+        };
+        const drawers = {
+          title: () => T("title", eff("title", d).text ?? ST.title),
+          subtitle: () => T("subtitle", "O F   " + data.certType),
+          certify: () => T("certify", eff("certify", d).text ?? ST.certify),
+          name: () => T("name", nameText),
+          institution: () => T("institution", data.institution),
+          middle: () => T("middle", data.team ? `${middle} as a member of "${data.team}"` : middle),
+          event: () => T("event", data.event),
+          studentId: () => T("studentId", data.studentId ? "ID : " + data.studentId : ""),
+          className: () => T("className", data.className ? "Class : " + data.className : ""),
+          group: () => T("group", data.group ? "Group : " + data.group : ""),
+          dept: () => T("dept", data.dept ? "Department : " + abbrDept(data.dept) : ""),
+          date: () => T("date", data.date),
+          dateLbl: () => T("dateLbl", eff("dateLbl", d).text ?? ST.dateLbl),
+          sigLbl: () => T("sigLbl", eff("sigLbl", d).text ?? ST.sigLbl),
+        };
+        Object.keys(slDef).forEach((id) => {
+          drawers[id] = () => {
+            const l = Object.assign(slDef[id](), over[id] || {});
+            if (opts.preview) lineCache[id] = l;
+            drawLine(l, id);
+          };
+        });
+        customs.forEach((c) => {
+          drawers[c.id] =
+            c.type === "img" ? () => drawImg(c)
+            : c.type === "line" ? () => drawLine(c, c.id)
+            : c.type === "shape" ? () => drawShape(c)
+            : () => T(c.id, c.text);
+        });
+        layerOrder().forEach((id) => drawers[id] && drawers[id]());
+
+        if (opts.highlight) {
+          const hb = hitBoxes.find((x) => x.id === opts.highlight);
+          if (hb) {
+            ctx.save();
+            if (hb.line) {
+              const L = hb.line;
+              ctx.strokeStyle = "rgba(37,99,235,.35)";
+              ctx.lineWidth = hb.thick + 12;
+              ctx.lineCap = "round";
+              ctx.beginPath();
+              ctx.moveTo(L.x1, L.y1);
+              ctx.lineTo(L.x2, L.y2);
+              ctx.stroke();
+              [
+                [L.x1, L.y1, 0],
+                [L.x2, L.y2, 1],
+              ].forEach(([hx, hy, end]) => {
+                ctx.fillStyle = "#2563eb";
+                ctx.fillRect(hx - 11, hy - 11, 22, 22);
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(hx - 11, hy - 11, 22, 22);
+                handles.push({ cx: hx, cy: hy, end });
+              });
+            } else {
+              ctx.setLineDash([8, 6]);
+              ctx.strokeStyle = "#2563eb";
+              ctx.lineWidth = 2;
+              ctx.strokeRect(hb.x - 8, hb.y - 4, hb.w + 16, hb.h + 8);
+              if (hb.img) {
+                ctx.setLineDash([]);
+                const hx = hb.x + hb.w + 8,
+                  hy = hb.y + hb.h + 4;
+                ctx.fillStyle = "#2563eb";
+                ctx.fillRect(hx - 13, hy - 13, 26, 26);
+                ctx.strokeStyle = "#fff";
+                ctx.strokeRect(hx - 13, hy - 13, 26, 26);
+                handles.push({ cx: hx, cy: hy, end: "br" });
+                const ci = getCustom(hb.id);
+                if (ci) {
+                  const ra = ((ci.rot || 0) * Math.PI) / 180, ux = Math.cos(ra), uy = Math.sin(ra);
+                  [["R", ci.w / 2, 0], ["L", -ci.w / 2, 0], ["B", 0, ci.h / 2], ["T", 0, -ci.h / 2]].forEach(([end, lx, ly]) => {
+                    const ex = ci.x + lx * ux - ly * uy, ey = ci.y + lx * uy + ly * ux;
+                    ctx.fillStyle = "#2563eb";
+                    ctx.fillRect(ex - 10, ey - 10, 20, 20);
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(ex - 10, ey - 10, 20, 20);
+                    handles.push({ cx: ex, cy: ey, end });
+                  });
+                }
+              }
+            }
+            ctx.restore();
+          }
+        }
+      }
+
+      function rowData(i) {
+        if (!rows.length)
+          return {
+            name: "Sample Name",
+            event: "Event Name Here",
+            date: "01 January 2026",
+            institution: "Institution Name",
+            team: "",
+            studentId: "STU-0001",
+            className: "10",
+            dept: "CSE",
+            group: "Science",
+            middleText: document.getElementById("middleText").value,
+            certType: document.getElementById("certType").value,
+          };
+        const r = rows[i];
+        return {
+          name: pick(r, "Name", "Student Name", "Full Name"),
+          event: pick(r, "Event Name", "Event", "Course", "Course Name"),
+          date: pick(r, "Date"),
+          institution: pick(
+            r,
+            "Institution",
+            "School",
+            "College",
+            "University",
+          ),
+          team: pick(r, "Team Name", "Team"),
+          studentId: pick(r, "Student ID", "StudentID", "Student_ID", "Student No", "Roll", "Roll No", "ID"),
+          className: pick(r, "Class", "Class Name", "Grade"),
+          dept: pick(r, "Department", "Dept", "Dept.", "Department Name"),
+          group: pick(r, "Group", "Group Name"),
+          middleText: document.getElementById("middleText").value,
+          certType: document.getElementById("certType").value,
+        };
+      }
+
+      function buildDesignGrid() {
+        const grid = document.getElementById("designGrid");
+        grid.innerHTML = "";
+        DESIGNS.forEach((d) => {
+          const el = document.createElement("div");
+          el.className =
+            "swatch" + (d.id === selectedDesign.id ? " active" : "");
+          el.innerHTML = `<div class="chip" style="background:linear-gradient(135deg,${d.primary},${d.accent})"></div><span>${d.label}</span>`;
+          if (DESIGNS.length > 1)
+            el.appendChild(
+              xBtn(() => {
+                DESIGNS = DESIGNS.filter((x) => x.id !== d.id);
+                if (selectedDesign.id === d.id) selectedDesign = DESIGNS[0];
+                buildDesignGrid();
+                buildBgGrid();
+                syncEditor();
+                renderPreview();
+              }),
+            );
+          el.addEventListener("click", () => {
+            selectedDesign = d;
+            buildDesignGrid();
+            buildBgGrid();
+            syncEditor();
+            renderPreview();
+          });
+          grid.appendChild(el);
+        });
+        document.getElementById("restoreDesigns").style.display =
+          DESIGNS.length < ALL_DESIGNS.length ? "inline-block" : "none";
+      }
+
+      function renderPreview() {
+        const area = document.getElementById("previewArea");
+        let canvas = document.getElementById("certCanvas");
+        if (!canvas) {
+          area.innerHTML =
+            '<div class="canvas-shell"><canvas id="certCanvas"></canvas></div>';
+          canvas = document.getElementById("certCanvas");
+        }
+        drawCertificate(canvas, rowData(currentIdx), selectedDesign, {
+          preview: true,
+          highlight: selectedEl,
+        });
+        document.getElementById("navRow").style.display =
+          rows.length > 1 ? "flex" : "none";
+        document.getElementById("navLabel").textContent =
+          `${currentIdx + 1} / ${rows.length}`;
+        const m = missingList.find((x) => x.i === currentIdx);
+        document.getElementById("rowWarn").textContent = !rows.length
+          ? tr(
+              "নমুনা preview — CSV আপলোড করলে আসল ডেটা আসবে",
+              "Sample preview — real data appears after you upload a CSV",
+            )
+          : m
+            ? tr(
+                "⚠ এই certificate-এ তথ্য নেই: ",
+                "⚠ This certificate is missing: ",
+              ) + m.missing.join(", ")
+            : "";
+        document.getElementById("prevBtn").disabled = currentIdx === 0;
+        document.getElementById("nextBtn").disabled =
+          currentIdx === rows.length - 1;
+      }
+
+      document
+        .getElementById("drop")
+        .addEventListener("click", () =>
+          document.getElementById("fileInput").click(),
+        );
+      document
+        .getElementById("fileInput")
+        .addEventListener("change", (e) => handleFile(e.target.files[0]));
+      ["dragover", "dragleave", "drop"].forEach((evt) => {
+        document.getElementById("drop").addEventListener(evt, (e) => {
+          e.preventDefault();
+          document
+            .getElementById("drop")
+            .classList.toggle("drag", evt === "dragover");
+          if (evt === "drop") handleFile(e.dataTransfer.files[0]);
+        });
+      });
+
+      function handleFile(file) {
+        if (!file) return;
+        document.getElementById("fname").textContent = file.name;
+        Papa.parse(file, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (res) => {
+            rows = res.data.filter((r) =>
+              Object.values(r).some((v) => v && v.toString().trim()),
+            );
+            if (!rows.length) {
+              setStatus(
+                () =>
+                  tr(
+                    "CSV-তে কোনো ডেটা পাওয়া যায়নি।",
+                    "No data found in the CSV.",
+                  ),
+                true,
+              );
+              return;
+            }
+            currentIdx = 0;
+            updateRowsInfo();
+            document.getElementById("pdfBtn").disabled = false;
+            setStatus("");
+            checkMissing();
+            renderPreview();
+          },
+          error: () =>
+            setStatus(
+              () =>
+                tr(
+                  "CSV পড়তে সমস্যা হয়েছে, ফাইলটা চেক করুন।",
+                  "Could not read the CSV — please check the file.",
+                ),
+              true,
+            ),
+        });
+      }
+
+      document.getElementById("middleText").addEventListener("input", () => {
+        renderPreview();
+      });
+      document.getElementById("certType").addEventListener("change", () => {
+        renderPreview();
+      });
+      document.getElementById("prevBtn").addEventListener("click", () => {
+        if (currentIdx > 0) {
+          currentIdx--;
+          renderPreview();
+        }
+      });
+      document.getElementById("nextBtn").addEventListener("click", () => {
+        if (currentIdx < rows.length - 1) {
+          currentIdx++;
+          renderPreview();
+        }
+      });
+
+      let lastStatus = { msg: "", err: false, ok: false };
+      function setStatus(msg, isErr, isOk) {
+        lastStatus = { msg, err: isErr, ok: isOk };
+        renderStatus();
+      }
+      function renderStatus() {
+        const el = document.getElementById("status"),
+          m = lastStatus.msg;
+        el.textContent = typeof m === "function" ? m() : m;
+        el.className =
+          "status" +
+          (lastStatus.err ? " err" : "") +
+          (lastStatus.ok ? " ok" : "");
+      }
+
+      const $ = (id) => document.getElementById(id);
+      function downloadCsv(name, data) {
+        if (!data.length) return;
+        const blob = new Blob(["\ufeff" + Papa.unparse(data)], {
+          type: "text/csv;charset=utf-8",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 3000);
+      }
+
+      $("pdfBtn").addEventListener("click", async () => {
+        if (!rows.length) return;
+        const btn = $("pdfBtn");
+        btn.disabled = true;
+        $("failBtn").style.display = "none";
+        setStatus(() => tr("PDF তৈরি হচ্ছে...", "Generating PDF..."));
+        failedList = [];
+        await fontsReady;
+        let made = 0;
+        const skip = $("skipIncomplete").checked;
+        const rec = (i, d, reason) => ({
+          "Row No.": i + 1,
+          Name: d.name,
+          "Event Name": d.event,
+          Date: d.date,
+          Institution: d.institution,
+          "Team Name": d.team,
+          "Student ID": d.studentId,
+          Class: d.className,
+          Department: d.dept,
+          Group: d.group,
+          Reason: reason,
+        });
+        try {
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF({
+            orientation: "landscape",
+            unit: "px",
+            format: [W, H],
+          });
+          const tmp = document.createElement("canvas");
+          for (let i = 0; i < rows.length; i++) {
+            const d = rowData(i);
+            const miss = REQUIRED.filter(([k]) => !d[k]).map(([, l]) => l);
+            if (skip && miss.length) {
+              failedList.push(
+                rec(i, d, tr("তথ্য নেই: ", "Missing: ") + miss.join(", ")),
+              );
+              continue;
+            }
+            try {
+              drawCertificate(tmp, d, selectedDesign);
+              const img = tmp.toDataURL("image/jpeg", 0.95);
+              if (made > 0) pdf.addPage([W, H], "landscape");
+              pdf.addImage(img, "JPEG", 0, 0, W, H);
+              made++;
+            } catch (err) {
+              failedList.push(rec(i, d, "Error: " + err.message));
+            }
+            setStatus(() =>
+              tr(
+                `তৈরি হচ্ছে... (${i + 1}/${rows.length})`,
+                `Generating... (${i + 1}/${rows.length})`,
+              ),
+            );
+            await new Promise((r) => setTimeout(r, 0));
+          }
+          const nf = failedList.length,
+            madeN = made;
+          const failMsg = () =>
+            nf ? tr(` ${nf}টি তৈরি হয়নি।`, ` ${nf} not generated.`) : "";
+          if (made > 0) {
+            const url = URL.createObjectURL(pdf.output("blob"));
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "certificates.pdf";
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(url), 3000);
+            setStatus(
+              () =>
+                tr(
+                  `✓ ${madeN}টি certificate সহ PDF ডাউনলোড হয়েছে।`,
+                  `✓ PDF with ${madeN} certificate(s) downloaded.`,
+                ) + failMsg(),
+              false,
+              true,
+            );
+          } else
+            setStatus(
+              () =>
+                tr(
+                  "কোনো certificate তৈরি হয়নি।",
+                  "No certificates were generated.",
+                ) + failMsg(),
+              true,
+            );
+        } catch (err) {
+          setStatus(
+            () =>
+              tr(
+                "PDF তৈরি করতে সমস্যা হয়েছে: ",
+                "Could not create the PDF: ",
+              ) + err.message,
+            true,
+          );
+        }
+        $("failBtn").style.display = failedList.length ? "block" : "none";
+        btn.disabled = false;
+      });
+      $("failBtn").addEventListener("click", () =>
+        downloadCsv("not-generated.csv", failedList),
+      );
+
+      // ---- editor
+      const getCustom = (id) => customs.find((c) => c.id === id);
+      const keepW = (c) => 1 - (c.cropL + c.cropR) / 100,
+        keepH = (c) => 1 - (c.cropT + c.cropB) / 100;
+      const imgRatio = (c) => (c.nh * keepH(c)) / (c.nw * keepW(c));
+      const ratioOf = (it) => (it.type === "img" ? imgRatio(it) : it.h / it.w);
+      const isDel = (id) => !!(over[id] && over[id].deleted);
+      function elKind(id) {
+        const c = getCustom(id);
+        if (c) return c.type;
+        const e = ELEMENTS.find((x) => x.id === id);
+        return e && e.kind === "line" ? "line" : "text";
+      }
+      const lineView = (id) => getCustom(id) || lineCache[id];
+      const lineEnds = (l) => {
+        const a = (l.angle * Math.PI) / 180,
+          dx = (Math.cos(a) * l.len) / 2,
+          dy = (Math.sin(a) * l.len) / 2;
+        return [
+          [l.x - dx, l.y - dy],
+          [l.x + dx, l.y + dy],
+        ];
+      };
+      function applyPatch(id, patch) {
+        const c = getCustom(id);
+        if (c) Object.assign(c, patch);
+        else over[id] = Object.assign(over[id] || {}, patch);
+      }
+      function setOver(patch) {
+        applyPatch(selectedEl, patch);
+        renderPreview();
+      }
+      const firstAvailable = () => {
+        const e = ELEMENTS.find((x) => !isDel(x.id));
+        return e ? e.id : customs[0] ? customs[0].id : "";
+      };
+
+      function rebuildSel() {
+        const sel = $("elSel");
+        sel.innerHTML = "";
+        const g1 = document.createElement("optgroup");
+        g1.label = t("ডিফল্ট লেখা ও লাইন");
+        ELEMENTS.filter((e) => !isDel(e.id)).forEach((e) =>
+          g1.appendChild(new Option(t(e.label), e.id)),
+        );
+        sel.appendChild(g1);
+        if (customs.length) {
+          const g2 = document.createElement("optgroup");
+          g2.label = t("আপনার যোগ করা");
+          customs.forEach((c) =>
+            g2.appendChild(
+              new Option(
+                c.type === "img"
+                  ? "🖼 " + c.name
+                  : c.type === "line"
+                    ? "➖ " + t("লাইন") + " " + c.n
+                    : c.type === "shape"
+                      ? "◆ " + t("আকার") + (c.text ? ": " + c.text : "")
+                      : "✎ " +
+                        (c.text.split("\n")[0] || t("(খালি)")).slice(0, 24),
+                c.id,
+              ),
+            ),
+          );
+          sel.appendChild(g2);
+        }
+        sel.value = selectedEl;
+        $("restoreEls").style.display = Object.keys(over).some(isDel)
+          ? "inline-block"
+          : "none";
+      }
+      function syncEditor() {
+        const k = selectedEl ? elKind(selectedEl) : "",
+          c = getCustom(selectedEl);
+        const show = (id, on) => {
+          $(id).style.display = on ? "block" : "none";
+        };
+        show("txtCtl", k === "text");
+        show("imgCtl", k === "img");
+        show("lineCtl", k === "line");
+        show("shapeCtl", k === "shape");
+        show("txtArea", k === "text" && (!!c || selectedEl in STATIC_TEXT));
+        show("delBtn", !!selectedEl);
+        $("edReset").style.display = c || !selectedEl ? "none" : "";
+        $("edResetAll").style.gridColumn = c || !selectedEl ? "1 / -1" : "";
+        $("elSel").value = selectedEl;
+        if (!selectedEl) return;
+        if (k === "img") {
+          $("imX").value = Math.round(c.x);
+          $("imY").value = Math.round(c.y);
+          $("imW").value = Math.round(c.w);
+          $("imH").value = Math.round(c.h);
+          $("imLock").checked = c.lock;
+          $("imRot").value = c.rot || 0;
+          $("imRotS").value = c.rot || 0;
+          $("imHide").classList.toggle("on", !!c.hidden);
+          [
+            ["imCL", "cropL"],
+            ["imCR", "cropR"],
+            ["imCT", "cropT"],
+            ["imCB", "cropB"],
+          ].forEach(([id, kk]) => {
+            $(id).value = c[kk];
+            $(id + "v").textContent = Math.round(c[kk]) + "%";
+          });
+          $("imOp").value = c.opacity;
+          $("imOpv").textContent = c.opacity + "%";
+        } else if (k === "shape") {
+          $("shKind").value = c.shape;
+          if (document.activeElement !== $("shText"))
+            $("shText").value = c.text;
+          $("shTs").value = c.tsize;
+          $("shTc").value = c.tcolor;
+          $("shFill").value = c.fill;
+          $("shStroke").value = c.stroke;
+          $("shSw").value = c.strokeW;
+          $("shX").value = Math.round(c.x);
+          $("shY").value = Math.round(c.y);
+          $("shW").value = Math.round(c.w);
+          $("shH").value = Math.round(c.h);
+          $("shRot").value = c.rot;
+          $("shNoFill").checked = c.noFill;
+          $("shLock").checked = c.lock;
+          $("shOp").value = c.opacity;
+          $("shOpv").textContent = c.opacity + "%";
+          $("shHide").classList.toggle("on", !!c.hidden);
+        } else if (k === "line") {
+          const l = lineView(selectedEl);
+          if (!l) return;
+          $("lnX").value = Math.round(l.x);
+          $("lnY").value = Math.round(l.y);
+          $("lnLen").value = Math.round(l.len);
+          $("lnAng").value = Math.round(l.angle * 10) / 10;
+          $("lnTh").value = l.thick;
+          $("lnColor").value = l.color;
+          $("lnStyle").value = l.dash;
+          $("lnOp").value = l.opacity;
+          $("lnOpv").textContent = l.opacity + "%";
+          $("lnHide").classList.toggle("on", !!l.hidden);
+        } else {
+          const e = eff(selectedEl, selectedDesign);
+          if (document.activeElement !== $("edText"))
+            $("edText").value = c
+              ? c.text
+              : (e.text ?? STATIC_TEXT[selectedEl] ?? "");
+          $("edX").value = Math.round(e.x);
+          $("edY").value = Math.round(e.y);
+          $("edSize").value = e.size;
+          $("edRot").value = e.rot || 0;
+          $("edRotS").value = e.rot || 0;
+          $("edColor").value = e.color;
+          $("edFont").value = e.font || "";
+          $("edAlign").value = e.align || "center";
+          $("edBoxW").value = e.boxW || 0;
+          $("edList").value = e.list || "";
+          [
+            ["edBold", "bold"],
+            ["edItalic", "italic"],
+            ["edUnder", "underline"],
+            ["edHide", "hidden"],
+          ].forEach(([id, kk]) => $(id).classList.toggle("on", !!e[kk]));
+        }
+      }
+      $("elSel").addEventListener("change", (e) => {
+        selectedEl = e.target.value;
+        syncEditor();
+        renderPreview();
+      });
+      [
+        ["edX", "x", -5000],
+        ["edY", "y", -5000],
+        ["edSize", "size", 6],
+      ].forEach(([id, k, mn]) =>
+        $(id).addEventListener("input", (e) => {
+          const v = parseFloat(e.target.value);
+          if (!isNaN(v) && v >= mn) setOver({ [k]: v });
+        }),
+      );
+      $("edColor").addEventListener("input", (e) =>
+        setOver({ color: e.target.value }),
+      );
+      $("edAlign").addEventListener("change", (e) => {
+        const v = e.target.value,
+          cur = eff(selectedEl, selectedDesign);
+        setOver(
+          v === "justify" && !(cur.boxW > 0)
+            ? { align: v, boxW: 900 }
+            : { align: v },
+        );
+        syncEditor();
+      });
+      $("edBoxW").addEventListener("input", (e) => {
+        const v = parseFloat(e.target.value);
+        if (!isNaN(v) && v >= 0) setOver({ boxW: v });
+      });
+      $("edList").addEventListener("change", (e) =>
+        setOver({ list: e.target.value }),
+      );
+      $("edFont").addEventListener("change", (e) => {
+        setOver({ font: e.target.value });
+        if (document.fonts && e.target.value)
+          document.fonts
+            .load("400 20px " + e.target.value)
+            .then(() => renderPreview());
+      });
+      [
+        ["edBold", "bold"],
+        ["edItalic", "italic"],
+        ["edUnder", "underline"],
+        ["edHide", "hidden"],
+      ].forEach(([id, k]) =>
+        $(id).addEventListener("click", () => {
+          setOver({ [k]: !eff(selectedEl, selectedDesign)[k] });
+          syncEditor();
+        }),
+      );
+      $("edReset").addEventListener("click", () => {
+        delete over[selectedEl];
+        syncEditor();
+        renderPreview();
+      });
+      $("edResetAll").addEventListener("click", () => {
+        over = {};
+        rebuildSel();
+        syncEditor();
+        renderPreview();
+      });
+      $("edText").addEventListener("input", (e) => {
+        setOver({ text: e.target.value });
+        rebuildSel();
+      });
+      $("decorChk").addEventListener("change", (e) => {
+        showDecor = e.target.checked;
+        syncEditor();
+        renderPreview();
+      });
+
+      // delete / restore
+      $("dupBtn").addEventListener("click", () => {
+        if (!selectedEl) return;
+        const src = getCustom(selectedEl), k = elKind(selectedEl), nid = "c" + nextId++;
+        let copy;
+        if (src) {
+          copy = Object.assign({}, src, { id: nid, x: src.x + 40, y: src.y + 40, hidden: false });
+          if (src.type === "line") copy.n = customs.filter((c) => c.type === "line").length + 1;
+        } else if (k === "line") {
+          const l = lineView(selectedEl);
+          if (!l) return;
+          copy = Object.assign({}, l, { id: nid, type: "line", x: l.x + 40, y: l.y + 40, hidden: false, n: customs.filter((c) => c.type === "line").length + 1 });
+          delete copy.deleted;
+        } else {
+          const e = eff(selectedEl, selectedDesign), dv = rowData(currentIdx || 0);
+          const dyn = {
+            subtitle: "O F   " + dv.certType, name: dv.name, institution: dv.institution, middle: dv.middleText,
+            event: dv.event, date: dv.date,
+            studentId: dv.studentId ? "ID : " + dv.studentId : "",
+            className: dv.className ? "Class : " + dv.className : "",
+            dept: dv.dept ? "Department : " + abbrDept(dv.dept) : "",
+            group: dv.group ? "Group : " + dv.group : "",
+          };
+          const txt = e.text ?? STATIC_TEXT[selectedEl] ?? dyn[selectedEl] ?? "";
+          copy = Object.assign({}, e, { id: nid, type: "text", text: txt, x: e.x + 40, y: e.y + 40, hidden: false });
+          delete copy.deleted;
+        }
+        const orig = selectedEl;
+        customs.push(copy);
+        layerOrder();
+        layer.splice(layer.indexOf(nid), 1);
+        layer.splice(layer.indexOf(orig) + 1, 0, nid);
+        selectedEl = nid;
+        rebuildSel();
+        syncEditor();
+        renderPreview();
+      });
+      $("delBtn").addEventListener("click", () => {
+        if (getCustom(selectedEl))
+          customs = customs.filter((c) => c.id !== selectedEl);
+        else
+          over[selectedEl] = Object.assign(over[selectedEl] || {}, {
+            deleted: true,
+          });
+        selectedEl = firstAvailable();
+        rebuildSel();
+        syncEditor();
+        renderPreview();
+      });
+      $("restoreEls").addEventListener("click", () => {
+        Object.keys(over).forEach((k) => {
+          delete over[k].deleted;
+        });
+        if (!selectedEl) selectedEl = firstAvailable();
+        rebuildSel();
+        syncEditor();
+        renderPreview();
+      });
+
+      function moveLayer(mode) {
+        if (!selectedEl) return;
+        layerOrder();
+        const i = layer.indexOf(selectedEl);
+        if (i < 0) return;
+        if (mode === "front" || mode === "back") {
+          layer.splice(i, 1);
+          mode === "front" ? layer.push(selectedEl) : layer.unshift(selectedEl);
+        } else {
+          const dir = mode === "up" ? 1 : -1,
+            off = (id) => isDel(id) || !!(getCustom(id) && getCustom(id).hidden) || !!(over[id] && over[id].hidden);
+          let j = i + dir;
+          while (j >= 0 && j < layer.length && off(layer[j])) j += dir;
+          if (j < 0 || j >= layer.length) return;
+          const target = layer[j];
+          layer.splice(i, 1);
+          layer.splice(layer.indexOf(target) + (dir > 0 ? 1 : 0), 0, selectedEl);
+        }
+        renderPreview();
+      }
+      [["lyFront", "front"], ["lyBack", "back"], ["lyUp", "up"], ["lyDown", "down"]].forEach(([id, m]) =>
+        $(id).addEventListener("click", () => moveLayer(m)),
+      );
+
+      // add text / image / line
+      $("addTextBtn").addEventListener("click", () => {
+        const id = "c" + nextId++;
+        customs.push({
+          id,
+          type: "text",
+          text: "Your text here",
+          x: W / 2,
+          y: H / 2 + 60,
+          size: 26,
+          color: "#2c2f36",
+          bold: false,
+          italic: false,
+          underline: false,
+          hidden: false,
+          font: "",
+        });
+        selectedEl = id;
+        rebuildSel();
+        syncEditor();
+        renderPreview();
+        $("edText").focus();
+        $("edText").select();
+      });
+      $("addLineBtn").addEventListener("click", () => {
+        const id = "c" + nextId++,
+          n = customs.filter((c) => c.type === "line").length + 1;
+        customs.push({
+          id,
+          type: "line",
+          n,
+          x: W / 2,
+          y: H / 2 + 130,
+          len: 420,
+          angle: 0,
+          thick: 2,
+          color: "#1b2a4a",
+          dash: "solid",
+          opacity: 100,
+          hidden: false,
+        });
+        selectedEl = id;
+        rebuildSel();
+        syncEditor();
+        renderPreview();
+      });
+      $("addImgBtn").addEventListener("click", () => $("imgInput").click());
+      $("imgInput").addEventListener("change", (e) => {
+        [...e.target.files].forEach((f) => {
+          const fr = new FileReader();
+          fr.onload = () => {
+            const el = new Image();
+            el.onload = () => {
+              const id = "c" + nextId++,
+                nw = el.naturalWidth,
+                nh = el.naturalHeight,
+                sc = Math.min(200 / nw, 240 / nh);
+              customs.push({
+                id,
+                type: "img",
+                name: f.name,
+                el,
+                nw,
+                nh,
+                x: 170,
+                y: 160,
+                w: nw * sc,
+                h: nh * sc,
+                cropL: 0,
+                cropR: 0,
+                cropT: 0,
+                cropB: 0,
+                opacity: 100,
+                lock: true,
+                hidden: false,
+              });
+              selectedEl = id;
+              rebuildSel();
+              syncEditor();
+              renderPreview();
+            };
+            el.src = fr.result;
+          };
+          fr.readAsDataURL(f);
+        });
+        e.target.value = "";
+      });
+
+      // image controls
+      [
+        ["imX", "x"],
+        ["imY", "y"],
+      ].forEach(([id, k]) =>
+        $(id).addEventListener("input", (e) => {
+          const v = parseFloat(e.target.value);
+          if (!isNaN(v)) setOver({ [k]: v });
+        }),
+      );
+      $("imW").addEventListener("input", (e) => {
+        const v = parseFloat(e.target.value),
+          c = getCustom(selectedEl);
+        if (!(v >= 5)) return;
+        setOver(c.lock ? { w: v, h: v * imgRatio(c) } : { w: v });
+        syncEditor();
+      });
+      $("imH").addEventListener("input", (e) => {
+        const v = parseFloat(e.target.value),
+          c = getCustom(selectedEl);
+        if (!(v >= 5)) return;
+        setOver(c.lock ? { h: v, w: v / imgRatio(c) } : { h: v });
+        syncEditor();
+      });
+      $("imLock").addEventListener("change", (e) =>
+        setOver({ lock: e.target.checked }),
+      );
+      $("imHide").addEventListener("click", () => {
+        const c = getCustom(selectedEl);
+        setOver({ hidden: !c.hidden });
+        syncEditor();
+      });
+      $("imOp").addEventListener("input", (e) => {
+        setOver({ opacity: parseFloat(e.target.value) });
+        syncEditor();
+      });
+      [
+        ["imCL", "cropL", "cropR"],
+        ["imCR", "cropR", "cropL"],
+        ["imCT", "cropT", "cropB"],
+        ["imCB", "cropB", "cropT"],
+      ].forEach(([id, k, opp]) =>
+        $(id).addEventListener("input", (e) => {
+          const c = getCustom(selectedEl),
+            oldW = keepW(c),
+            oldH = keepH(c);
+          c[k] = Math.min(parseFloat(e.target.value), 90 - c[opp]);
+          c.w *= keepW(c) / oldW;
+          c.h *= keepH(c) / oldH;
+          renderPreview();
+          syncEditor();
+        }),
+      );
+
+      [["edRot", "edRotS"], ["imRot", "imRotS"]].forEach(([n, r]) => {
+        $(n).addEventListener("input", (e) => {
+          const v = parseFloat(e.target.value);
+          if (!isNaN(v)) { $(r).value = v; setOver({ rot: v }); }
+        });
+        $(r).addEventListener("input", (e) => {
+          const v = parseFloat(e.target.value);
+          $(n).value = v; setOver({ rot: v });
+        });
+      });
+
+      // line controls
+      [
+        ["lnX", "x", -5000],
+        ["lnY", "y", -5000],
+        ["lnLen", "len", 1],
+        ["lnAng", "angle", -360],
+        ["lnTh", "thick", 0.5],
+      ].forEach(([id, k, mn]) =>
+        $(id).addEventListener("input", (e) => {
+          const v = parseFloat(e.target.value);
+          if (!isNaN(v) && v >= mn) setOver({ [k]: v });
+        }),
+      );
+      $("lnColor").addEventListener("input", (e) =>
+        setOver({ color: e.target.value }),
+      );
+      $("lnStyle").addEventListener("change", (e) =>
+        setOver({ dash: e.target.value }),
+      );
+      $("lnOp").addEventListener("input", (e) => {
+        setOver({ opacity: parseFloat(e.target.value) });
+        syncEditor();
+      });
+      $("lnHide").addEventListener("click", () => {
+        const l = lineView(selectedEl);
+        setOver({ hidden: !l.hidden });
+        syncEditor();
+      });
+
+      // shape controls
+      $("addShapeBtn").addEventListener("click", () => {
+        const id = "c" + nextId++;
+        customs.push({
+          id,
+          type: "shape",
+          lbl: "আকার",
+          shape: "circle",
+          x: W / 2,
+          y: H / 2 + 100,
+          w: 70,
+          h: 70,
+          rot: 0,
+          fill: "#c9a227",
+          stroke: "#1b2a4a",
+          strokeW: 0,
+          noFill: false,
+          opacity: 100,
+          text: "1",
+          tcolor: "#ffffff",
+          tsize: 0,
+          font: "",
+          lock: true,
+          hidden: false,
+        });
+        selectedEl = id;
+        rebuildSel();
+        syncEditor();
+        renderPreview();
+      });
+      [
+        ["shX", "x", -5000],
+        ["shY", "y", -5000],
+        ["shTs", "tsize", 0],
+        ["shSw", "strokeW", 0],
+        ["shRot", "rot", -720],
+      ].forEach(([id, k, mn]) =>
+        $(id).addEventListener("input", (e) => {
+          const v = parseFloat(e.target.value);
+          if (!isNaN(v) && v >= mn) setOver({ [k]: v });
+        }),
+      );
+      $("shW").addEventListener("input", (e) => {
+        const v = parseFloat(e.target.value),
+          c = getCustom(selectedEl);
+        if (!(v >= 4)) return;
+        setOver(c.lock ? { w: v, h: (v * c.h) / c.w } : { w: v });
+        syncEditor();
+      });
+      $("shH").addEventListener("input", (e) => {
+        const v = parseFloat(e.target.value),
+          c = getCustom(selectedEl);
+        if (!(v >= 4)) return;
+        setOver(c.lock ? { h: v, w: (v * c.w) / c.h } : { h: v });
+        syncEditor();
+      });
+      $("shKind").addEventListener("change", (e) =>
+        setOver({ shape: e.target.value }),
+      );
+      $("shText").addEventListener("input", (e) => {
+        setOver({ text: e.target.value });
+        rebuildSel();
+      });
+      [
+        ["shTc", "tcolor"],
+        ["shFill", "fill"],
+        ["shStroke", "stroke"],
+      ].forEach(([id, k]) =>
+        $(id).addEventListener("input", (e) =>
+          setOver({ [k]: e.target.value }),
+        ),
+      );
+      $("shNoFill").addEventListener("change", (e) =>
+        setOver({ noFill: e.target.checked }),
+      );
+      $("shLock").addEventListener("change", (e) =>
+        setOver({ lock: e.target.checked }),
+      );
+      $("shOp").addEventListener("input", (e) => {
+        setOver({ opacity: parseFloat(e.target.value) });
+        syncEditor();
+      });
+      $("shHide").addEventListener("click", () => {
+        const c = getCustom(selectedEl);
+        setOver({ hidden: !c.hidden });
+        syncEditor();
+      });
+      $("shNext").addEventListener("click", () => {
+        const c = getCustom(selectedEl);
+        if (!c) return;
+        const id = "c" + nextId++;
+        customs.push(
+          Object.assign({}, c, {
+            id,
+            y: c.y + c.h * 1.5,
+            text: nextLabel(c.text),
+          }),
+        );
+        selectedEl = id;
+        rebuildSel();
+        syncEditor();
+        renderPreview();
+      });
+
+      // ---- drag / resize on preview
+      function canvasPos(ev, c) {
+        const r = c.getBoundingClientRect();
+        return {
+          x: ((ev.clientX - r.left) * W) / r.width,
+          y: ((ev.clientY - r.top) * H) / r.height,
+        };
+      }
+      function segDist(p, L) {
+        const vx = L.x2 - L.x1,
+          vy = L.y2 - L.y1,
+          t = Math.max(
+            0,
+            Math.min(
+              1,
+              ((p.x - L.x1) * vx + (p.y - L.y1) * vy) /
+                (vx * vx + vy * vy || 1),
+            ),
+          );
+        return Math.hypot(p.x - (L.x1 + t * vx), p.y - (L.y1 + t * vy));
+      }
+      function hitTest(p) {
+        return [...hitBoxes].reverse().find((b) =>
+          b.line
+            ? segDist(p, b.line) <= Math.max(14, b.thick / 2 + 8)
+            : p.x >= b.x - 8 && p.x <= b.x + b.w + 8 && p.y >= b.y - 4 && p.y <= b.y + b.h + 4,
+        );
+      }
+      $("previewArea").addEventListener("pointerdown", (ev) => {
+        if (ev.target.id !== "certCanvas" || (!selectedEl && !hitBoxes.length))
+          return;
+        const p = canvasPos(ev, ev.target),
+          k = selectedEl ? elKind(selectedEl) : "";
+        const hh = selectedEl
+          ? handles
+              .filter((h) => Math.hypot(p.x - h.cx, p.y - h.cy) < 28)
+              .sort((a, b) => Math.hypot(p.x - a.cx, p.y - a.cy) - Math.hypot(p.x - b.cx, p.y - b.cy))[0]
+          : null;
+        if (hh) {
+          if (k === "img" && "RLBT".includes(hh.end)) {
+            drag = { mode: "edge", side: hh.end, c: ev.target };
+          } else if (k === "img" || k === "shape") {
+            const sc = getCustom(selectedEl);
+            drag = {
+              mode: "resize",
+              gx: p.x - (sc.x + sc.w / 2),
+              gy: p.y - (sc.y + sc.h / 2),
+              c: ev.target,
+            };
+          } else if (k === "line") {
+            const ends = lineEnds(lineView(selectedEl));
+            drag = {
+              mode: "end",
+              fix: ends[hh.end === 0 ? 1 : 0],
+              c: ev.target,
+            };
+          }
+          ev.preventDefault();
+          return;
+        }
+        const hit = hitTest(p);
+        if (!hit) return;
+        selectedEl = hit.id;
+        const e =
+          elKind(hit.id) === "line"
+            ? lineView(hit.id)
+            : eff(hit.id, selectedDesign);
+        drag = { mode: "move", dx: p.x - e.x, dy: p.y - e.y, c: ev.target };
+        ev.preventDefault();
+        syncEditor();
+        renderPreview();
+      });
+      window.addEventListener("pointermove", (ev) => {
+        if (!drag) return;
+        const p = canvasPos(ev, drag.c);
+        if (drag.mode === "resize") {
+          const it = getCustom(selectedEl),
+            nw = Math.max(20, 2 * (p.x - drag.gx - it.x));
+          const rr = ratioOf(it);
+          it.w = nw;
+          it.h = it.lock ? nw * rr : Math.max(20, 2 * (p.y - drag.gy - it.y));
+        } else if (drag.mode === "edge") {
+          const it = getCustom(selectedEl), ra = ((it.rot || 0) * Math.PI) / 180;
+          const dx = p.x - it.x, dy = p.y - it.y;
+          if (drag.side === "R" || drag.side === "L") {
+            const ux = Math.cos(ra), uy = Math.sin(ra), sg = drag.side === "R" ? 1 : -1;
+            const nw = Math.max(20, sg * (dx * ux + dy * uy) + it.w / 2), sh = ((nw - it.w) / 2) * sg;
+            it.x += ux * sh; it.y += uy * sh; it.w = nw;
+          } else {
+            const vx = -Math.sin(ra), vy = Math.cos(ra), sg = drag.side === "B" ? 1 : -1;
+            const nh = Math.max(20, sg * (dx * vx + dy * vy) + it.h / 2), sh = ((nh - it.h) / 2) * sg;
+            it.x += vx * sh; it.y += vy * sh; it.h = nh;
+          }
+        } else if (drag.mode === "end") {
+          const f = drag.fix;
+          let ang = (Math.atan2(p.y - f[1], p.x - f[0]) * 180) / Math.PI;
+          if (ang > 90) ang -= 180;
+          if (ang <= -90) ang += 180;
+          [0, 90].forEach((t) => {
+            if (Math.abs(ang - t) < 2) ang = t;
+          });
+          applyPatch(selectedEl, {
+            x: Math.round((p.x + f[0]) / 2),
+            y: Math.round((p.y + f[1]) / 2),
+            len: Math.max(4, Math.round(Math.hypot(p.x - f[0], p.y - f[1]))),
+            angle: Math.round(ang * 10) / 10,
+          });
+        } else {
+          const x = Math.round(p.x - drag.dx),
+            y = Math.round(p.y - drag.dy);
+          applyPatch(selectedEl, { x, y });
+        }
+        syncEditor();
+        renderPreview();
+      });
+      window.addEventListener("pointerup", () => {
+        drag = null;
+      });
+
+      document
+        .getElementById("restoreDesigns")
+        .addEventListener("click", () => {
+          DESIGNS = ALL_DESIGNS.slice();
+          buildDesignGrid();
+        });
+      document.getElementById("restoreBgs").addEventListener("click", () => {
+        BACKGROUNDS = ALL_BACKGROUNDS.slice();
+        buildBgGrid();
+      });
+
+      // ---- WYSIWYG rich editor (shows real styling, stores <b>/<c=..> markup in the hidden field)
+      const RTK = ["b", "i", "u", "c", "f", "s"];
+      function rtSt(root, node) {
+        const ch = [];
+        for (let q = node.parentNode; q && q !== root; q = q.parentNode) ch.unshift(q);
+        const st = { b: false, i: false, u: false, c: "", f: "", s: 0 };
+        ch.forEach((q) => RTK.forEach((k) => {
+          if (q.dataset && k in q.dataset) {
+            const v = q.dataset[k];
+            st[k] = "biu".includes(k) ? v === "1" : k === "s" ? parseFloat(v) || 0 : v;
+          }
+        }));
+        return st;
+      }
+      function rtRuns(root) {
+        root.querySelectorAll("br").forEach((x) => x.replaceWith("\n"));
+        const out = [], tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        while (tw.nextNode()) {
+          const n = tw.currentNode;
+          if (n.data) out.push({ t: n.data.replace(/\u00a0/g, " "), st: rtSt(root, n) });
+        }
+        return out;
+      }
+      function rtMark(runs) {
+        return runs.map(({ t, st }) => {
+          let o = "", c = "";
+          ["b", "i", "u"].forEach((k) => { if (st[k]) { o += "<" + k + ">"; c = "</" + k + ">" + c; } });
+          ["c", "f", "s"].forEach((k) => { if (st[k]) { o += "<" + k + "=" + st[k] + ">"; c = "</" + k + ">" + c; } });
+          return o + t + c;
+        }).join("");
+      }
+      function rtPaint(sp, st) {
+        sp.style.fontWeight = st.b ? "700" : "";
+        sp.style.fontStyle = st.i ? "italic" : "";
+        sp.style.textDecoration = st.u ? "underline" : "";
+        sp.style.color = st.c;
+        sp.style.fontFamily = st.f;
+        sp.style.fontSize = st.s ? Math.min(st.s, 26) + "px" : "";
+      }
+      function rtRender(root, v) {
+        root.textContent = "";
+        parseRuns(v, { bold: false, italic: false, underline: false, color: "", font: "", size: 0 }).forEach((r) => {
+          const sp = document.createElement("span"), st = { b: r.b, i: r.i, u: r.u, c: r.c, f: r.f, s: r.s };
+          sp.textContent = r.t;
+          RTK.forEach((k) => { if (st[k]) sp.dataset[k] = "biu".includes(k) ? "1" : st[k]; });
+          rtPaint(sp, st);
+          root.appendChild(sp);
+        });
+      }
+      function rtOff(root, node, off) {
+        const r = document.createRange();
+        r.selectNodeContents(root);
+        r.setEnd(node, off);
+        return r.toString().length;
+      }
+      function rtSel(root, a, b, nf) {
+        const r = document.createRange(), tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        let pos = 0, st = 0;
+        while (tw.nextNode()) {
+          const n = tw.currentNode, e = pos + n.length;
+          if (!st && a <= e) { r.setStart(n, a - pos); st = 1; }
+          if (st && b <= e) { r.setEnd(n, b - pos); break; }
+          pos = e;
+        }
+        if (!st) return;
+        if (!nf) root.focus();
+        const sel = getSelection();
+        sel.removeAllRanges(); sel.addRange(r);
+        root._rng = r.cloneRange();
+      }
+      function rtPush(root, v) {
+        root._f._raw(v);
+        root._f.dispatchEvent(new Event("input"));
+      }
+      function rtApply(root, prop, val, clear, live) {
+        const r = root._rng;
+        if (!r || r.collapsed) { alert(tr("আগে লেখার একটা অংশ সিলেক্ট করুন।", "Select some text first.")); return; }
+        const a = rtOff(root, r.startContainer, r.startOffset), b = rtOff(root, r.endContainer, r.endOffset);
+        let pos = 0;
+        const out = [];
+        rtRuns(root).forEach((x) => {
+          const s0 = pos, e0 = pos + x.t.length;
+          pos = e0;
+          if (e0 <= a || s0 >= b) { out.push(x); return; }
+          const f = Math.max(a, s0) - s0, t2 = Math.min(b, e0) - s0;
+          if (f > 0) out.push({ t: x.t.slice(0, f), st: x.st });
+          out.push({ t: x.t.slice(f, t2), st: x.st, hit: 1 });
+          if (t2 < x.t.length) out.push({ t: x.t.slice(t2), st: x.st });
+        });
+        const hits = out.filter((x) => x.hit);
+        const offv = "biu".includes(prop) ? false : prop === "s" ? 0 : "";
+        const on = !clear && !live && hits.length && hits.every((x) => x.st[prop] === val);
+        hits.forEach((x) => {
+          x.st = clear ? { b: false, i: false, u: false, c: "", f: "", s: 0 } : Object.assign({}, x.st, { [prop]: on ? offv : val });
+        });
+        const v = rtMark(out);
+        rtRender(root, v);
+        rtPush(root, v);
+        rtSel(root, a, b, live);
+      }
+      function makeRt(fid) {
+        const f = $(fid), root = document.createElement("div"), box = document.createElement("div");
+        root.className = "rich"; root.contentEditable = "true"; root._f = f;
+        const proto = f.tagName === "TEXTAREA" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+        const d = Object.getOwnPropertyDescriptor(proto, "value");
+        f._raw = (v) => d.set.call(f, v);
+        Object.defineProperty(f, "value", {
+          configurable: true,
+          get() { return d.get.call(f); },
+          set(v) { d.set.call(f, v); if (rtMark(rtRuns(root)) !== v) rtRender(root, v); },
+        });
+        f.focus = () => root.focus();
+        f.select = () => { const r = document.createRange(); r.selectNodeContents(root); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+        f.style.display = "none";
+        root.addEventListener("input", () => rtPush(root, rtMark(rtRuns(root))));
+        root.addEventListener("keydown", (e) => {
+          if (e.key !== "Enter") return;
+          e.preventDefault();
+          if (f.tagName === "TEXTAREA") document.execCommand("insertText", false, "\n");
+        });
+        root.addEventListener("paste", (e) => {
+          e.preventDefault();
+          let t = (e.clipboardData || window.clipboardData).getData("text");
+          if (f.tagName === "INPUT") t = t.replace(/\s*\n\s*/g, " ");
+          document.execCommand("insertText", false, t);
+        });
+        document.addEventListener("selectionchange", () => {
+          const s = getSelection();
+          if (s.rangeCount && root.contains(s.getRangeAt(0).commonAncestorContainer)) root._rng = s.getRangeAt(0).cloneRange();
+        });
+        box.innerHTML = '<div class="rt"><button type="button" class="tog" data-k="b"><b>B</b></button><button type="button" class="tog" data-k="i"><i>I</i></button><button type="button" class="tog" data-k="u"><u>U</u></button><input type="color" value="#c0392b" title="Color"><select class="rtf"></select><input type="number" class="rts" min="6" max="300" placeholder="px"><button type="button" class="tog" data-k="x">✕ Clear</button></div><div class="rthint"></div>';
+        box.querySelector(".rthint").textContent = tr("লেখার কিছু অংশ সিলেক্ট করে বাটন চাপুন। একই বাটন/রং/ফন্ট/সাইজ আবার চাপলে স্টাইলটা উঠে যাবে।", "Select part of the text and press a button. Pressing the same button/color/font/size again removes that style.");
+        fillFontSelect(box.querySelector(".rtf"), "Font…");
+        box.querySelectorAll("button[data-k]").forEach((bt) => {
+          bt.addEventListener("mousedown", (e) => e.preventDefault());
+          bt.addEventListener("click", () => (bt.dataset.k === "x" ? rtApply(root, "b", false, true) : rtApply(root, bt.dataset.k, true)));
+        });
+        box.querySelector('input[type="color"]').addEventListener("input", (e) => {
+          const r = root._rng, v = e.target.value;
+          if (r && !r.collapsed && root.contains(r.commonAncestorContainer)) return rtApply(root, "c", v, false, true);
+          const id = fid === "middleText" ? "middle" : selectedEl;
+          if (!id) return;
+          applyPatch(id, { color: v });
+          if (id === selectedEl) $("edColor").value = v;
+          renderPreview();
+        });
+        const sf = box.querySelector(".rtf");
+        sf.addEventListener("change", () => { if (sf.value) rtApply(root, "f", sf.value); sf.value = ""; });
+        box.querySelector(".rts").addEventListener("change", (e) => { const v = parseFloat(e.target.value); if (v >= 6) rtApply(root, "s", v); e.target.value = ""; });
+        rtRender(root, f.value);
+        f.insertAdjacentElement("afterend", root);
+        root.insertAdjacentElement("afterend", box);
+      }
+      fillFontSelect($("edFont"), t("ডিজাইনের ডিফল্ট"));
+      makeRt("edText");
+      makeRt("middleText");
+      fontsReady.then(() => renderPreview());
+
+      function renderDev() {
+        const box = $("devList");
+        box.innerHTML = "";
+        [
+          [
+            ["name", "নাম"],
+            ["number", "নম্বর"],
+            ["email", "ইমেইল"],
+          ],
+          [
+            ["linkedin", "LinkedIn"],
+            ["facebook", "Facebook"],
+          ],
+        ].forEach((line) => {
+          const ln = document.createElement("div");
+          ln.className = "devline";
+          line.forEach(([k, lb]) => {
+            const row = document.createElement("div");
+            row.className = "devrow";
+            const key = document.createElement("div");
+            key.className = "k";
+            key.textContent = t(lb);
+            const val = document.createElement("div");
+            val.className = "v";
+            const v = (DEVELOPER[k] || "").trim();
+            if (!v) val.textContent = "—";
+            else if (k === "name") val.textContent = v;
+            else {
+              const a = document.createElement("a");
+              a.textContent = v.replace(/^https?:\/\/(www\.)?/, "");
+              a.href =
+                k === "email"
+                  ? "mailto:" + v
+                  : k === "number"
+                    ? "tel:" + v.replace(/[^\d+]/g, "")
+                    : /^https?:/.test(v)
+                      ? v
+                      : "https://" + v;
+              if (k === "email") {
+                a.addEventListener("click", (e) => {
+                  e.preventDefault();
+                  openMail();
+                });
+              }
+              if (k === "linkedin" || k === "facebook") {
+                a.target = "_blank";
+                a.rel = "noopener noreferrer";
+              }
+              val.appendChild(a);
+            }
+            row.appendChild(key);
+            row.appendChild(val);
+            ln.appendChild(row);
+          });
+          box.appendChild(ln);
+        });
+      }
+      function openMail() {
+        $("mailTo").textContent = DEVELOPER.email;
+        $("mailModal").hidden = false;
+        $("mailBody").focus();
+      }
+      function closeMail() {
+        $("mailModal").hidden = true;
+      }
+      function mailUrlParts() {
+        return [
+          encodeURIComponent(DEVELOPER.email),
+          encodeURIComponent($("mailSubj").value),
+          encodeURIComponent($("mailBody").value),
+        ];
+      }
+      $("mailGmail").addEventListener("click", () => {
+        const [to, su, body] = mailUrlParts();
+        window.open(
+          "https://mail.google.com/mail/?view=cm&fs=1&to=" + to + "&su=" + su + "&body=" + body,
+          "_blank",
+          "noopener",
+        );
+      });
+      $("mailApp").addEventListener("click", () => {
+        const [to, su, body] = mailUrlParts();
+        location.href = "mailto:" + to + "?subject=" + su + "&body=" + body;
+      });
+      $("mailClose").addEventListener("click", closeMail);
+      $("mailModal").addEventListener("click", (e) => {
+        if (e.target.id === "mailModal") closeMail();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeMail();
+      });
+      function updateRowsInfo() {
+        $("rowsInfo").textContent = rows.length
+          ? tr(
+              `${rows.length} জনের ডেটা পাওয়া গেছে`,
+              `${rows.length} record(s) found`,
+            )
+          : "";
+      }
+      function setLang(l) {
+        lang = l;
+        try {
+          localStorage.setItem("certLang", l);
+        } catch (e) {}
+        applyLang();
+        document
+          .querySelectorAll("#langSw button")
+          .forEach((b) => b.classList.toggle("on", b.dataset.lang === lang));
+        buildDesignGrid();
+        buildBgGrid();
+        rebuildSel();
+        syncEditor();
+        updateRowsInfo();
+        renderDev();
+        if (rows.length) checkMissing();
+        renderPreview();
+        renderStatus();
+      }
+      document.querySelectorAll("#langSw button").forEach((b) =>
+        b.addEventListener("click", () => {
+          if (b.dataset.lang !== lang) setLang(b.dataset.lang);
+        }),
+      );
+      buildDesignGrid();
+      buildBgGrid();
+      rebuildSel();
+      syncEditor();
+      setLang(lang);
+      if (document.fonts) document.fonts.ready.then(() => renderPreview());
+    </script>
+  </body>
+</html>
